@@ -43,13 +43,20 @@ namespace RussellLib.Base
         public static Icon ReadIcon(BinaryReader reader)
         {
             int size = reader.ReadInt32();
-            if (size == 0) return null; // some bad GM8 decompilers don't include the icon, GM8 fails, I don't. :)
+            if (size <= 0) return null; // some bad GM8 decompilers don't include the icon, LGM fails, I don't. :)
 
-            byte[] data = reader.ReadBytes(size);
-            var stream = new MemoryStream(data);
-            var icon = new Icon(stream);
-            stream.Dispose();
-            return icon;
+            try
+            {
+                byte[] data = reader.ReadBytes(size);
+                var stream = new MemoryStream(data);
+                var icon = new Icon(stream);
+                stream.Dispose();
+                return icon;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public static Image ReadZlibImage(BinaryReader reader)
@@ -108,15 +115,8 @@ namespace RussellLib.Base
         public static string ReadString(BinaryReader reader)
         {
             int Length = reader.ReadInt32();
-            byte[] raw_data = new byte[Length];
-            int i = 0;
-            while (Length > 0)
-            {
-                raw_data[i] = reader.ReadByte();
-                Length--;
-                i++;
-            }
-            return Encoding.UTF8.GetString(raw_data);
+            byte[] RawData = reader.ReadBytes(Length);
+            return Encoding.UTF8.GetString(RawData); // some project files don't use UTF8...
         }
 
         public static BinaryReader MakeReaderZlib(BinaryReader reader)

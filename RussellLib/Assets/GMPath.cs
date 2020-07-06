@@ -14,7 +14,8 @@ namespace RussellLib.Assets
         public bool Smooth;
         public bool Closed;
         public uint Precision; // you can't put negative values in the editor.
-        public int BackgroundRoom; // TODO GMRoom...
+        public GMRoom BackgroundRoom;
+        private int _BackgroundRoom;
         public Point Snap;
         public List<PathPoint> Points;
 
@@ -26,7 +27,7 @@ namespace RussellLib.Assets
             Smooth = ReadBool(reader);
             Closed = ReadBool(reader);
             Precision = reader.ReadUInt32();
-            BackgroundRoom = reader.ReadInt32();
+            _BackgroundRoom = reader.ReadInt32();
 
             int _x = reader.ReadInt32();
             int _y = reader.ReadInt32();
@@ -43,6 +44,14 @@ namespace RussellLib.Assets
             }
 
             reader.Dispose();
+        }
+
+        public void PostLoad(GMProject proj)
+        {
+            if (_BackgroundRoom > -1)
+            {
+                BackgroundRoom = proj.Rooms[_BackgroundRoom];
+            }
         }
     }
 }

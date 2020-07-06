@@ -26,6 +26,17 @@ namespace RussellLib
         public List<GMScript> Scripts;
         public List<GMFont> Fonts;
         public List<GMTimeline> Timelines;
+        public List<GMObject> Objects;
+        public List<GMRoom> Rooms;
+
+        public int LastInstanceID;
+        public int LastTileID;
+
+        public List<GMIncludedFile> IncludedFiles;
+        public List<string> ExtensionPackageNames;
+        public GMGameInformation GameInformation;
+        public List<string> LibraryCreationCode; // if you've ever used custom .lib files you know what this is.
+        public List<GMRoom> RoomExecutionOrder; // order for room_goto_next/previous()
 
         public GMProject(BinaryReader reader)
         {
@@ -58,8 +69,125 @@ namespace RussellLib
             Load_Scripts(reader);
             Load_Fonts(reader);
             Load_Timelines(reader);
-            // TODO: finish all assets & resource tree.
-            Console.WriteLine("breakpoint on this line to check stuff.");
+            Load_Objects(reader);
+            Load_Rooms(reader);
+            Load_LastIDs(reader);
+            Load_IncludedFiles(reader);
+            Load_ExtensionPackages(reader);
+            Load_GameInformation(reader);
+            Load_LibCreationCode(reader);
+            Load_RoomOrder(reader);
+            PostLoad();
+
+
+            Load_ResourceTree(reader, Version);
+            // TODO: Finish resource tree. I don't care since I'm not making an IDE, I'll let [unknown] code it.
+        }
+
+        private void PostLoad()
+        {
+            // Update parent/bg/object/etc stuff...
+
+            for (int i = 0; i < Paths.Count; i++)
+            {
+                var p = Paths[i];
+                if (p == null) continue;
+
+                p.PostLoad(this);
+            }
+
+            for (int i = 0; i < Timelines.Count; i++)
+            {
+                var t = Timelines[i];
+                if (t == null) continue;
+
+                for (int j = 0; j < t.Moments.Count; j++)
+                {
+                    var m = t.Moments[i];
+                    for (int k = 0; k < m.Event.Actions.Count; k++)
+                    {
+                        var a = m.Event.Actions[k];
+                        a.PostLoad(this);
+                    }
+                }
+            }
+
+            for (int i = 0; i < Objects.Count; i++)
+            {
+                var o = Objects[i];
+                if (o == null) continue;
+
+                o.PostLoad(this);
+                for (int j = 0; j < o.Events.Count; j++)
+                {
+                    var e = o.Events[i];
+                    for (int k = 0; k < e.Count; k++)
+                    {
+                        var e_in = e[k];
+                        for (int a = 0; a < e_in.Actions.Count; a++)
+                        {
+                            e_in.Actions[a].PostLoad(this);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void Load_ResourceTree(BinaryReader reader, int projver)
+        {
+            // TODO: finish this.
+            // (not really required unless you're making an IDE)
+        }
+
+        private void Load_RoomOrder(BinaryReader reader)
+        {
+            int Version = reader.ReadInt32();
+            if (Version != 700)
+            {
+                throw new InvalidDataException("Invalid room execution order version.");
+            }
+
+            int Count = reader.ReadInt32();
+            RoomExecutionOrder = new List<GMRoom>(Count);
+            for (int i = 0; i < Count; i++)
+            {
+                int room_ind = reader.ReadInt32();
+                RoomExecutionOrder.Add(Rooms[room_ind]);
+            }
+        }
+
+        private void Load_LibCreationCode(BinaryReader reader)
+        {
+            int Version = reader.ReadInt32();
+            if (Version != 500)
+            {
+                throw new InvalidDataException("Invalid library creation code version.");
+            }
+
+            int Count = reader.ReadInt32();
+            LibraryCreationCode = new List<string>(Count);
+            for (int i = 0; i < Count; i++)
+            {
+                LibraryCreationCode.Add(ReadString(reader));
+            }
+        }
+
+        private void Load_LastIDs(BinaryReader reader)
+        {
+            LastInstanceID = reader.ReadInt32();
+            LastTileID = reader.ReadInt32();
+        }
+
+        private void Load_GameInformation(BinaryReader reader)
+        {
+            int Version = reader.ReadInt32();
+            if (Version != 800)
+            {
+                throw new InvalidDataException("This library only supports .gmk GM8.0 files.");
+            }
+
+            var dec_reader = MakeReaderZlib(reader);
+            GameInformation = new GMGameInformation(dec_reader);
         }
 
         private void Load_Options(BinaryReader reader)
@@ -83,6 +211,85 @@ namespace RussellLib
             }
 
             ConstantsLastChanged = ReadDate(reader);
+        }
+
+        private void Load_ExtensionPackages(BinaryReader reader)
+        {
+            int Version = reader.ReadInt32();
+            if (Version != 700)
+            {
+                throw new InvalidDataException("Invalid extension package version.");
+            }
+
+            int Count = reader.ReadInt32();
+            ExtensionPackageNames = new List<string>(Count);
+            for (int i = 0; i < Count; i++)
+            {
+                ExtensionPackageNames.Add(ReadString(reader));
+            }
+        }
+
+        private void Load_IncludedFiles(BinaryReader reader)
+        {
+            int Version = reader.ReadInt32();
+            if (Version != 800)
+            {
+                throw new InvalidDataException("This library only supports .gmk GM8.0 files.");
+            }
+
+            int Count = reader.ReadInt32();
+            IncludedFiles = new List<GMIncludedFile>(Count);
+            for (int i = 0; i < Count; i++)
+            {
+                var dec_reader = MakeReaderZlib(reader);
+                if (ReadBool(dec_reader))
+                {
+                    IncludedFiles.Add(new GMIncludedFile(dec_reader));
+                }
+                else IncludedFiles.Add(null);
+            }
+        }
+
+        private void Load_Rooms(BinaryReader reader)
+        {
+            int Version = reader.ReadInt32();
+            if (Version != 800)
+            {
+                throw new InvalidDataException("This library only supports .gmk GM8.0 files.");
+            }
+
+            int Count = reader.ReadInt32();
+            Rooms = new List<GMRoom>(Count);
+            for (int i = 0; i < Count; i++)
+            {
+                var dec_reader = MakeReaderZlib(reader);
+                if (ReadBool(dec_reader))
+                {
+                    Rooms.Add(new GMRoom(dec_reader, this));
+                }
+                else Rooms.Add(null);
+            }
+        }
+
+        private void Load_Objects(BinaryReader reader)
+        {
+            int Version = reader.ReadInt32();
+            if (Version != 800)
+            {
+                throw new InvalidDataException("This library only supports .gmk GM8.0 files.");
+            }
+
+            int Count = reader.ReadInt32();
+            Objects = new List<GMObject>(Count);
+            for (int i = 0; i < Count; i++)
+            {
+                var dec_reader = MakeReaderZlib(reader);
+                if (ReadBool(dec_reader))
+                {
+                    Objects.Add(new GMObject(dec_reader, this));
+                }
+                else Objects.Add(null);
+            }
         }
 
         private void Load_Timelines(BinaryReader reader)
