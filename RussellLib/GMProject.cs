@@ -38,6 +38,8 @@ namespace RussellLib
         public List<string> LibraryCreationCode; // if you've ever used custom .lib files you know what this is.
         public List<GMRoom> RoomExecutionOrder; // order for room_goto_next/previous()
 
+        public List<ResourceTreeItem> ResourceTree; // ......
+
         public GMProject(BinaryReader reader)
         {
             Load_Main(reader);
@@ -79,9 +81,8 @@ namespace RussellLib
             Load_RoomOrder(reader);
             PostLoad();
 
-
-            Load_ResourceTree(reader, Version);
-            // TODO: Finish resource tree. I don't care since I'm not making an IDE, I'll let [unknown] code it.
+            // *try* to load the resource tree...
+            Load_ResourceTree(reader);
         }
 
         private void PostLoad()
@@ -133,10 +134,14 @@ namespace RussellLib
             }
         }
 
-        private void Load_ResourceTree(BinaryReader reader, int projver)
+        private void Load_ResourceTree(BinaryReader reader)
         {
-            // TODO: finish this.
-            // (not really required unless you're making an IDE)
+            int rootnodes = 12; // 12 seems to be the value for GM8.0
+            ResourceTree = new List<ResourceTreeItem>(rootnodes);
+            while (rootnodes-- > 0)
+            {
+                ResourceTree.Add(new ResourceTreeItem(reader));
+            }
         }
 
         private void Load_RoomOrder(BinaryReader reader)
