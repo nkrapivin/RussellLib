@@ -5,7 +5,7 @@
 RussellLib is a C# library to read GM8.0 .gmk project files.
 
 
-still unfinished atm but can read most of the assets.
+kinda works, only for GM8.0 .gmk files and it doesn't read the resource tree, but if you want to dump something then it's fine.
 
 
 wiki with format documentation coming...
