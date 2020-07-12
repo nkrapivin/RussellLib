@@ -34,7 +34,6 @@ namespace RussellLib
 
         public List<GMIncludedFile> IncludedFiles;
         public List<string> ExtensionPackageNames;
-        private List<GMEmbeddedExtension> ExeExtensions;
         public GMGameInformation GameInformation;
         public List<string> LibraryCreationCode; // if you've ever used custom .lib files you know what this is.
         public List<GMRoom> RoomExecutionOrder; // order for room_goto_next/previous()
@@ -49,15 +48,6 @@ namespace RussellLib
         private void Load_Main(ProjectReader reader)
         {
             int Magic = reader.ReadInt32();
-            bool IsExe = false;
-            if (Magic == 5265997) // "MZP", regular .exe header.
-            {
-                // it's an exe file?
-                reader.BaseStream.Seek(2000000, SeekOrigin.Begin);
-                Magic = reader.ReadInt32();
-                IsExe = true;
-                // and then we do the rest as usual...........
-            }
 
             if (Magic != 1234321)
             {
@@ -70,28 +60,10 @@ namespace RussellLib
                 throw new InvalidDataException("This library only supports .gmk GM8.0 files.");
             }
 
-            if (IsExe) reader.ReadBoolean();
-            else
-            {
-                GameID = reader.ReadInt32();
-                DirectPlayGuid = reader.ReadGuid();
-            }
-            Load_Options(reader, IsExe);
-            if (!IsExe)
-                Load_Triggers(reader);
-            else
-            {
-                string name = reader.ReadString();
-                if (name != "D3DX8.dll") throw new InvalidDataException("Corrupted GM .exe file");
-                var dll = reader.MakeReaderZlib();
-                dll.Dispose();
-                reader = reader.MakeEncryptedReader();
-                int skip = reader.ReadInt32();
-                for (int i = 1; i <= skip; i++) reader.ReadInt32();
-                reader.ReadBoolean();
-                GameID = reader.ReadInt32();
-                DirectPlayGuid = reader.ReadGuid();
-            }
+            GameID = reader.ReadInt32();
+            DirectPlayGuid = reader.ReadGuid();
+            Load_Options(reader);
+            Load_Triggers(reader);
             Load_Constants(reader);
             Load_Sounds(reader);
             Load_Sprites(reader);
@@ -224,9 +196,9 @@ namespace RussellLib
             GameInformation = new GMGameInformation(dec_reader);
         }
 
-        private void Load_Options(ProjectReader reader, bool is_exe)
+        private void Load_Options(ProjectReader reader)
         {
-            Options = new GMOptions(reader, is_exe);
+            Options = new GMOptions(reader);
         }
 
         private void Load_Constants(ProjectReader reader)

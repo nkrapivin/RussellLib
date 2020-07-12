@@ -97,7 +97,7 @@ namespace RussellLib.Assets
             RES_1600X1200
         }
 
-        public GMOptions(ProjectReader reader, bool IsExe)
+        public GMOptions(ProjectReader reader)
         {
             int version = reader.ReadInt32();
             if (version != 800)
@@ -147,7 +147,7 @@ namespace RussellLib.Assets
             LoadingImage = null;
             if (ShowCustomLoadImage)
             {
-                if (IsExe || dec_reader.ReadBoolean())
+                if (dec_reader.ReadBoolean())
                 {
                     LoadingImage = dec_reader.ReadZlibImage();
                 }
@@ -155,24 +155,21 @@ namespace RussellLib.Assets
             LoadimgImagePartTransparent = dec_reader.ReadBoolean();
             LoadImageAlpha = dec_reader.ReadInt32();
             ScaleProgressBar = dec_reader.ReadBoolean();
-            if (!IsExe) GameIcon = dec_reader.ReadIcon();
+            GameIcon = dec_reader.ReadIcon();
             DisplayErrors = dec_reader.ReadBoolean();
             WriteToLog = dec_reader.ReadBoolean();
             AbortOnAllErrors = dec_reader.ReadBoolean();
             TreatUninitAsZero = dec_reader.ReadBoolean();
-            if (!IsExe)
-            {
-                Author = dec_reader.ReadString();
-                Version = dec_reader.ReadString();
-                LastChanged = dec_reader.ReadDate();
-                Information = dec_reader.ReadString();
-                GameVersion = dec_reader.ReadVersion();
-                Company = dec_reader.ReadString();
-                Product = dec_reader.ReadString();
-                Copyright = dec_reader.ReadString();
-                Description = dec_reader.ReadString();
-                OptionsLastChanged = dec_reader.ReadDate();
-            }
+            Author = dec_reader.ReadString();
+            Version = dec_reader.ReadString();
+            LastChanged = dec_reader.ReadDate();
+            Information = dec_reader.ReadString();
+            GameVersion = dec_reader.ReadVersion();
+            Company = dec_reader.ReadString();
+            Product = dec_reader.ReadString();
+            Copyright = dec_reader.ReadString();
+            Description = dec_reader.ReadString();
+            OptionsLastChanged = dec_reader.ReadDate();
         }
     }
 }
