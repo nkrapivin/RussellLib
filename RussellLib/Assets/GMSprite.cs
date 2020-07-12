@@ -6,7 +6,7 @@ using System.IO;
 
 namespace RussellLib.Assets
 {
-    public class GMSprite : StreamBase
+    public class GMSprite
     {
         public string Name;
         public DateTime LastChanged;
@@ -35,10 +35,10 @@ namespace RussellLib.Assets
             MANUAL
         }
 
-        public GMSprite(BinaryReader reader)
+        public GMSprite(ProjectReader reader)
         {
-            Name = ReadString(reader);
-            LastChanged = ReadDate(reader);
+            Name = reader.ReadString();
+            LastChanged = reader.ReadDate();
             int Version = reader.ReadInt32();
             if (Version != 800)
             {
@@ -62,14 +62,14 @@ namespace RussellLib.Assets
                 Height = reader.ReadInt32();
                 if (Width * Height != 0)
                 {
-                    Subimages.Add(ReadBGRAImage(reader, Width, Height));
+                    Subimages.Add(reader.ReadBGRAImage(Width, Height));
                 }
                 else Subimages.Add(null); // ????
             }
 
             MaskMode = (SpriteMaskMode)reader.ReadInt32();
             AlphaTolerance = reader.ReadInt32();
-            SeparateMasks = ReadBool(reader);
+            SeparateMasks = reader.ReadBoolean();
             BBoxMode = (SpriteBBoxMode)reader.ReadInt32();
 
             int _l = reader.ReadInt32();
@@ -81,7 +81,7 @@ namespace RussellLib.Assets
             reader.Dispose();
         }
 
-        public GMSprite(BinaryReader reader, bool _gmspr)
+        public GMSprite(ProjectReader reader, bool _gmspr)
         {
             // Basically the same code except that we read the magic and uncompress data.
 
@@ -92,7 +92,7 @@ namespace RussellLib.Assets
             }
 
             // use the zlib compressed reader from now on.
-            var dec_reader = MakeReaderZlib(reader);
+            var dec_reader = reader.MakeReaderZlib();
             int version = dec_reader.ReadInt32();
             if (version != 800)
             {
@@ -116,14 +116,14 @@ namespace RussellLib.Assets
                 Height = reader.ReadInt32();
                 if (Width * Height != 0)
                 {
-                    Subimages.Add(ReadBGRAImage(reader, Width, Height));
+                    Subimages.Add(reader.ReadBGRAImage(Width, Height));
                 }
                 else Subimages.Add(null); // ????
             }
 
             MaskMode = (SpriteMaskMode)reader.ReadInt32();
             AlphaTolerance = reader.ReadInt32();
-            SeparateMasks = ReadBool(reader);
+            SeparateMasks = reader.ReadBoolean();
             BBoxMode = (SpriteBBoxMode)reader.ReadInt32();
 
             int _l = reader.ReadInt32();

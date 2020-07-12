@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RussellLib.Assets
 {
-    public class GMIncludedFile : StreamBase
+    public class GMIncludedFile
     {
         public DateTime LastChanged;
         public string FileName;
@@ -29,20 +29,20 @@ namespace RussellLib.Assets
             CUSTOM_FOLDER
         }
 
-        public GMIncludedFile(BinaryReader reader)
+        public GMIncludedFile(ProjectReader reader)
         {
-            LastChanged = ReadDate(reader);
+            LastChanged = reader.ReadDate();
             int version = reader.ReadInt32();
             if (version != 800)
             {
                 throw new InvalidDataException("Wrong Included File version, got " + version);
             }
 
-            FileName = ReadString(reader);
-            FilePath = ReadString(reader);
-            Original = ReadBool(reader);
+            FileName = reader.ReadString();
+            FilePath = reader.ReadString();
+            Original = reader.ReadBoolean();
             FileSize = reader.ReadInt32();
-            StoreInProject = ReadBool(reader);
+            StoreInProject = reader.ReadBoolean();
             Data = null;
             if (StoreInProject)
             {
@@ -50,10 +50,10 @@ namespace RussellLib.Assets
                 Data = reader.ReadBytes(size);
             }
             ExportKind = (ExportActionKind)reader.ReadInt32();
-            ExportFolder = ReadString(reader);
-            Overwrite = ReadBool(reader);
-            FreeMemory = ReadBool(reader);
-            RemoveAtGameEnd = ReadBool(reader);
+            ExportFolder = reader.ReadString();
+            Overwrite = reader.ReadBoolean();
+            FreeMemory = reader.ReadBoolean();
+            RemoveAtGameEnd = reader.ReadBoolean();
         }
     }
 }

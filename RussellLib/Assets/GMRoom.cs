@@ -7,7 +7,7 @@ using System.IO;
 
 namespace RussellLib.Assets
 {
-    public class GMRoom : StreamBase
+    public class GMRoom
     {
         public string Name;
         public DateTime LastChanged;
@@ -51,23 +51,23 @@ namespace RussellLib.Assets
             Views
         }
 
-        public GMRoom(BinaryReader reader, GMProject proj)
+        public GMRoom(ProjectReader reader, GMProject proj)
         {
-            Name = ReadString(reader);
-            LastChanged = ReadDate(reader);
+            Name = reader.ReadString();
+            LastChanged = reader.ReadDate();
             int version = reader.ReadInt32();
-            Caption = ReadString(reader);
+            Caption = reader.ReadString();
             Width = reader.ReadUInt32();
             Height = reader.ReadUInt32();
             int _snx = reader.ReadInt32();
             int _sny = reader.ReadInt32();
             Snap = new Point(_snx, _sny);
-            Isometric = ReadBool(reader);
+            Isometric = reader.ReadBoolean();
             Speed = reader.ReadUInt32();
-            Persistent = ReadBool(reader);
-            BackgroundColor = ReadColor(reader);
-            DrawBackgroundColor = ReadBool(reader);
-            CreationCode = ReadString(reader);
+            Persistent = reader.ReadBoolean();
+            BackgroundColor = reader.ReadColor();
+            DrawBackgroundColor = reader.ReadBoolean();
+            CreationCode = reader.ReadString();
 
             // Read room backgrounds.
             int bgcount = reader.ReadInt32();
@@ -75,32 +75,32 @@ namespace RussellLib.Assets
             for (int i = 0; i < bgcount; i++)
             {
                 var bgstruct = new RoomBackground();
-                bgstruct.Visible = ReadBool(reader);
-                bgstruct.IsForeground = ReadBool(reader);
+                bgstruct.Visible = reader.ReadBoolean();
+                bgstruct.IsForeground = reader.ReadBoolean();
                 bgstruct.Background = null;
                 int bgid = reader.ReadInt32();
                 if (bgid > -1) bgstruct.Background = proj.Backgrounds[bgid];
                 int _bgx = reader.ReadInt32();
                 int _bgy = reader.ReadInt32();
                 bgstruct.Position = new Point(_bgx, _bgy);
-                bgstruct.TileHorizontal = ReadBool(reader);
-                bgstruct.TileVertical = ReadBool(reader);
+                bgstruct.TileHorizontal = reader.ReadBoolean();
+                bgstruct.TileVertical = reader.ReadBoolean();
                 bgstruct.SpeedHorizontal = reader.ReadInt32();
                 bgstruct.SpeedVertical = reader.ReadInt32();
-                bgstruct.Stretch = ReadBool(reader);
+                bgstruct.Stretch = reader.ReadBoolean();
 
                 Backgrounds.Add(bgstruct);
             }
 
             // Read views.
-            EnableViews = ReadBool(reader);
+            EnableViews = reader.ReadBoolean();
             int viewcount = reader.ReadInt32();
             Views = new List<RoomView>(viewcount);
             for (int i = 0; i < viewcount; i++)
             {
                 var viewstruct = new RoomView();
                 int _x, _y, _w, _h;
-                viewstruct.Visible = ReadBool(reader);
+                viewstruct.Visible = reader.ReadBoolean();
                 _x = reader.ReadInt32();
                 _y = reader.ReadInt32();
                 _w = reader.ReadInt32();
@@ -132,8 +132,8 @@ namespace RussellLib.Assets
                 int _objind = reader.ReadInt32();
                 if (_objind > -1) inststruct.Object = proj.Objects[_objind];
                 inststruct.ID = reader.ReadInt32();
-                inststruct.CreationCode = ReadString(reader);
-                inststruct.IsLocked = ReadBool(reader);
+                inststruct.CreationCode = reader.ReadString();
+                inststruct.IsLocked = reader.ReadBoolean();
             }
 
             // Read room tiles.
@@ -153,21 +153,21 @@ namespace RussellLib.Assets
                 tilestruct.BGCoords = new Rectangle(_x, _y, _w, _h);
                 tilestruct.Depth = reader.ReadInt32();
                 tilestruct.ID = reader.ReadInt32();
-                tilestruct.IsLocked = ReadBool(reader);
+                tilestruct.IsLocked = reader.ReadBoolean();
             }
 
             // weird editor settings (aren't really important unless you make an IDE)
-            REI = ReadBool(reader);
+            REI = reader.ReadBoolean();
             EditorWidth = reader.ReadInt32();
             EditorHeight = reader.ReadInt32();
-            ShowGrid = ReadBool(reader);
-            ShowObjects = ReadBool(reader);
-            ShowTiles = ReadBool(reader);
-            ShowBGs = ReadBool(reader);
-            ShowFGs = ReadBool(reader);
-            ShowViews = ReadBool(reader);
-            DeleteUnderlyingObj = ReadBool(reader);
-            DeleteUnderlyingTil = ReadBool(reader);
+            ShowGrid = reader.ReadBoolean();
+            ShowObjects = reader.ReadBoolean();
+            ShowTiles = reader.ReadBoolean();
+            ShowBGs = reader.ReadBoolean();
+            ShowFGs = reader.ReadBoolean();
+            ShowViews = reader.ReadBoolean();
+            DeleteUnderlyingObj = reader.ReadBoolean();
+            DeleteUnderlyingTil = reader.ReadBoolean();
             Tab = (EditorTab)reader.ReadInt32();
             int _hx = reader.ReadInt32();
             int _hy = reader.ReadInt32();

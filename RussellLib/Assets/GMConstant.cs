@@ -3,15 +3,15 @@ using System.IO;
 
 namespace RussellLib.Assets
 {
-    public class GMConstant : StreamBase
+    public class GMConstant
     {
         public string Name;
         public string Value;
 
-        public GMConstant(BinaryReader reader)
+        public GMConstant(ProjectReader reader)
         {
-            Name = ReadString(reader);
-            Value = ReadString(reader);
+            Name = reader.ReadString();
+            Value = reader.ReadString();
         }
     }
 }

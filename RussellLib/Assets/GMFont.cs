@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RussellLib.Assets
 {
-    public class GMFont : StreamBase
+    public class GMFont
     {
         public string Name;
         public DateTime LastChanged;
@@ -17,20 +17,20 @@ namespace RussellLib.Assets
         public int RangeMin;
         public int RangeMax;
 
-        public GMFont(BinaryReader reader)
+        public GMFont(ProjectReader reader)
         {
-            Name = ReadString(reader);
-            LastChanged = ReadDate(reader);
+            Name = reader.ReadString();
+            LastChanged = reader.ReadDate();
             int version = reader.ReadInt32();
             if (version != 800)
             {
                 throw new InvalidDataException("This library only supports .gmk GM8.0 files.");
             }
 
-            FontName = ReadString(reader);
+            FontName = reader.ReadString();
             Size = reader.ReadInt32();
-            Bold = ReadBool(reader);
-            Italic = ReadBool(reader);
+            Bold = reader.ReadBoolean();
+            Italic = reader.ReadBoolean();
             RangeMin = reader.ReadInt32();
             RangeMax = reader.ReadInt32();
         }

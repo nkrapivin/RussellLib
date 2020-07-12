@@ -6,7 +6,7 @@ using System.IO;
 
 namespace RussellLib
 {
-    public class GMProject : StreamBase
+    public class GMProject
     {
         // main header at the top.
         public int Version;
@@ -34,20 +34,31 @@ namespace RussellLib
 
         public List<GMIncludedFile> IncludedFiles;
         public List<string> ExtensionPackageNames;
+        private List<GMEmbeddedExtension> ExeExtensions;
         public GMGameInformation GameInformation;
         public List<string> LibraryCreationCode; // if you've ever used custom .lib files you know what this is.
         public List<GMRoom> RoomExecutionOrder; // order for room_goto_next/previous()
 
         public List<ResourceTreeItem> ResourceTree; // ......
 
-        public GMProject(BinaryReader reader)
+        public GMProject(Stream input)
         {
-            Load_Main(reader);
+            Load_Main(new ProjectReader(input));
         }
 
-        private void Load_Main(BinaryReader reader)
+        private void Load_Main(ProjectReader reader)
         {
             int Magic = reader.ReadInt32();
+            bool IsExe = false;
+            if (Magic == 5265997) // "MZP", regular .exe header.
+            {
+                // it's an exe file?
+                reader.BaseStream.Seek(2000000, SeekOrigin.Begin);
+                Magic = reader.ReadInt32();
+                IsExe = true;
+                // and then we do the rest as usual...........
+            }
+
             if (Magic != 1234321)
             {
                 throw new InvalidDataException("Magic is not 1234321, got " + Magic);
@@ -59,10 +70,28 @@ namespace RussellLib
                 throw new InvalidDataException("This library only supports .gmk GM8.0 files.");
             }
 
-            GameID = reader.ReadInt32();
-            DirectPlayGuid = ReadGuid(reader);
-            Load_Options(reader);
-            Load_Triggers(reader);
+            if (IsExe) reader.ReadBoolean();
+            else
+            {
+                GameID = reader.ReadInt32();
+                DirectPlayGuid = reader.ReadGuid();
+            }
+            Load_Options(reader, IsExe);
+            if (!IsExe)
+                Load_Triggers(reader);
+            else
+            {
+                string name = reader.ReadString();
+                if (name != "D3DX8.dll") throw new InvalidDataException("Corrupted GM .exe file");
+                var dll = reader.MakeReaderZlib();
+                dll.Dispose();
+                reader = reader.MakeEncryptedReader();
+                int skip = reader.ReadInt32();
+                for (int i = 1; i <= skip; i++) reader.ReadInt32();
+                reader.ReadBoolean();
+                GameID = reader.ReadInt32();
+                DirectPlayGuid = reader.ReadGuid();
+            }
             Load_Constants(reader);
             Load_Sounds(reader);
             Load_Sprites(reader);
@@ -121,7 +150,7 @@ namespace RussellLib
                 o.PostLoad(this);
                 for (int j = 0; j < o.Events.Count; j++)
                 {
-                    var e = o.Events[i];
+                    var e = o.Events[j];
                     for (int k = 0; k < e.Count; k++)
                     {
                         var e_in = e[k];
@@ -134,7 +163,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_ResourceTree(BinaryReader reader)
+        private void Load_ResourceTree(ProjectReader reader)
         {
             int rootnodes = 12; // 12 seems to be the value for GM8.0
             ResourceTree = new List<ResourceTreeItem>(rootnodes);
@@ -144,7 +173,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_RoomOrder(BinaryReader reader)
+        private void Load_RoomOrder(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 700)
@@ -161,7 +190,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_LibCreationCode(BinaryReader reader)
+        private void Load_LibCreationCode(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 500)
@@ -173,17 +202,17 @@ namespace RussellLib
             LibraryCreationCode = new List<string>(Count);
             for (int i = 0; i < Count; i++)
             {
-                LibraryCreationCode.Add(ReadString(reader));
+                LibraryCreationCode.Add(reader.ReadString());
             }
         }
 
-        private void Load_LastIDs(BinaryReader reader)
+        private void Load_LastIDs(ProjectReader reader)
         {
             LastInstanceID = reader.ReadInt32();
             LastTileID = reader.ReadInt32();
         }
 
-        private void Load_GameInformation(BinaryReader reader)
+        private void Load_GameInformation(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -191,16 +220,16 @@ namespace RussellLib
                 throw new InvalidDataException("This library only supports .gmk GM8.0 files.");
             }
 
-            var dec_reader = MakeReaderZlib(reader);
+            var dec_reader = reader.MakeReaderZlib();
             GameInformation = new GMGameInformation(dec_reader);
         }
 
-        private void Load_Options(BinaryReader reader)
+        private void Load_Options(ProjectReader reader, bool is_exe)
         {
-            Options = new GMOptions(reader);
+            Options = new GMOptions(reader, is_exe);
         }
 
-        private void Load_Constants(BinaryReader reader)
+        private void Load_Constants(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -215,10 +244,10 @@ namespace RussellLib
                 Constants.Add(new GMConstant(reader));
             }
 
-            ConstantsLastChanged = ReadDate(reader);
+            ConstantsLastChanged = reader.ReadDate();
         }
 
-        private void Load_ExtensionPackages(BinaryReader reader)
+        private void Load_ExtensionPackages(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 700)
@@ -230,11 +259,11 @@ namespace RussellLib
             ExtensionPackageNames = new List<string>(Count);
             for (int i = 0; i < Count; i++)
             {
-                ExtensionPackageNames.Add(ReadString(reader));
+                ExtensionPackageNames.Add(reader.ReadString());
             }
         }
 
-        private void Load_IncludedFiles(BinaryReader reader)
+        private void Load_IncludedFiles(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -246,8 +275,8 @@ namespace RussellLib
             IncludedFiles = new List<GMIncludedFile>(Count);
             for (int i = 0; i < Count; i++)
             {
-                var dec_reader = MakeReaderZlib(reader);
-                if (ReadBool(dec_reader))
+                var dec_reader = reader.MakeReaderZlib();
+                if (dec_reader.ReadBoolean())
                 {
                     IncludedFiles.Add(new GMIncludedFile(dec_reader));
                 }
@@ -255,7 +284,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_Rooms(BinaryReader reader)
+        private void Load_Rooms(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -267,8 +296,8 @@ namespace RussellLib
             Rooms = new List<GMRoom>(Count);
             for (int i = 0; i < Count; i++)
             {
-                var dec_reader = MakeReaderZlib(reader);
-                if (ReadBool(dec_reader))
+                var dec_reader = reader.MakeReaderZlib();
+                if (dec_reader.ReadBoolean())
                 {
                     Rooms.Add(new GMRoom(dec_reader, this));
                 }
@@ -276,7 +305,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_Objects(BinaryReader reader)
+        private void Load_Objects(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -288,8 +317,8 @@ namespace RussellLib
             Objects = new List<GMObject>(Count);
             for (int i = 0; i < Count; i++)
             {
-                var dec_reader = MakeReaderZlib(reader);
-                if (ReadBool(dec_reader))
+                var dec_reader = reader.MakeReaderZlib();
+                if (dec_reader.ReadBoolean())
                 {
                     Objects.Add(new GMObject(dec_reader, this));
                 }
@@ -297,7 +326,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_Timelines(BinaryReader reader)
+        private void Load_Timelines(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -309,8 +338,8 @@ namespace RussellLib
             Timelines = new List<GMTimeline>(Count);
             for (int i = 0; i < Count; i++)
             {
-                var dec_reader = MakeReaderZlib(reader);
-                if (ReadBool(dec_reader))
+                var dec_reader = reader.MakeReaderZlib();
+                if (dec_reader.ReadBoolean())
                 {
                     Timelines.Add(new GMTimeline(dec_reader));
                 }
@@ -318,7 +347,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_Fonts(BinaryReader reader)
+        private void Load_Fonts(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -330,8 +359,8 @@ namespace RussellLib
             Fonts = new List<GMFont>(Count);
             for (int i = 0; i < Count; i++)
             {
-                var dec_reader = MakeReaderZlib(reader);
-                if (ReadBool(dec_reader))
+                var dec_reader = reader.MakeReaderZlib();
+                if (dec_reader.ReadBoolean())
                 {
                     Fonts.Add(new GMFont(dec_reader));
                 }
@@ -339,7 +368,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_Scripts(BinaryReader reader)
+        private void Load_Scripts(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -351,8 +380,8 @@ namespace RussellLib
             Scripts = new List<GMScript>(Count);
             for (int i = 0; i < Count; i++)
             {
-                var dec_reader = MakeReaderZlib(reader);
-                if (ReadBool(dec_reader))
+                var dec_reader = reader.MakeReaderZlib();
+                if (dec_reader.ReadBoolean())
                 {
                     Scripts.Add(new GMScript(dec_reader));
                 }
@@ -360,7 +389,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_Paths(BinaryReader reader)
+        private void Load_Paths(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -372,8 +401,8 @@ namespace RussellLib
             Paths = new List<GMPath>(Count);
             for (int i = 0; i < Count; i++)
             {
-                var dec_reader = MakeReaderZlib(reader);
-                if (ReadBool(dec_reader))
+                var dec_reader = reader.MakeReaderZlib();
+                if (dec_reader.ReadBoolean())
                 {
                     Paths.Add(new GMPath(dec_reader));
                 }
@@ -381,7 +410,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_Sounds(BinaryReader reader)
+        private void Load_Sounds(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -393,8 +422,8 @@ namespace RussellLib
             Sounds = new List<GMSound>(Count);
             for (int i = 0; i < Count; i++)
             {
-                var dec_reader = MakeReaderZlib(reader);
-                if (ReadBool(dec_reader))
+                var dec_reader = reader.MakeReaderZlib();
+                if (dec_reader.ReadBoolean())
                 {
                     Sounds.Add(new GMSound(dec_reader));
                 }
@@ -402,7 +431,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_Backgrounds(BinaryReader reader)
+        private void Load_Backgrounds(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -414,8 +443,8 @@ namespace RussellLib
             Backgrounds = new List<GMBackground>(Count);
             for (int i = 0; i < Count; i++)
             {
-                var dec_reader = MakeReaderZlib(reader);
-                if (ReadBool(dec_reader))
+                var dec_reader = reader.MakeReaderZlib();
+                if (dec_reader.ReadBoolean())
                 {
                     Backgrounds.Add(new GMBackground(dec_reader));
                 }
@@ -423,7 +452,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_Sprites(BinaryReader reader)
+        private void Load_Sprites(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -435,8 +464,8 @@ namespace RussellLib
             Sprites = new List<GMSprite>(Count);
             for (int i = 0; i < Count; i++)
             {
-                var dec_reader = MakeReaderZlib(reader);
-                if (ReadBool(dec_reader))
+                var dec_reader = reader.MakeReaderZlib();
+                if (dec_reader.ReadBoolean())
                 {
                     Sprites.Add(new GMSprite(dec_reader));
                 }
@@ -444,7 +473,7 @@ namespace RussellLib
             }
         }
 
-        private void Load_Triggers(BinaryReader reader)
+        private void Load_Triggers(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
             if (Version != 800)
@@ -456,15 +485,15 @@ namespace RussellLib
             Triggers = new List<GMTrigger>(Count);
             for (int i = 0; i < Count; i++)
             {
-                var dec_reader = MakeReaderZlib(reader);
-                if (ReadBool(dec_reader))
+                var dec_reader = reader.MakeReaderZlib();
+                if (dec_reader.ReadBoolean())
                 {
                     Triggers.Add(new GMTrigger(dec_reader));
                 }
                 else Triggers.Add(null);
             }
 
-            TriggersLastChanged = ReadDate(reader);
+            TriggersLastChanged = reader.ReadDate();
         }
     }
 }

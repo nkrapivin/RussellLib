@@ -6,7 +6,7 @@ using System.Security.Policy;
 
 namespace RussellLib.Assets
 {
-    public class GMOptions : StreamBase
+    public class GMOptions
     {
         public bool StartInFullscreen;
         public bool InterpolatePixels;
@@ -97,7 +97,7 @@ namespace RussellLib.Assets
             RES_1600X1200
         }
 
-        public GMOptions(BinaryReader reader)
+        public GMOptions(ProjectReader reader, bool IsExe)
         {
             int version = reader.ReadInt32();
             if (version != 800)
@@ -105,71 +105,74 @@ namespace RussellLib.Assets
                 throw new InvalidDataException("This library only supports .gmk GM8.0 files.");
             }
 
-            var dec_reader = MakeReaderZlib(reader);
-            StartInFullscreen = ReadBool(dec_reader);
-            InterpolatePixels = ReadBool(dec_reader);
-            DontDrawBorder = ReadBool(dec_reader);
-            DisplayCursor = ReadBool(dec_reader);
+            var dec_reader = reader.MakeReaderZlib();
+            StartInFullscreen = dec_reader.ReadBoolean();
+            InterpolatePixels = dec_reader.ReadBoolean();
+            DontDrawBorder = dec_reader.ReadBoolean();
+            DisplayCursor = dec_reader.ReadBoolean();
             Scaling = dec_reader.ReadInt32();
-            AllowWindowResize = ReadBool(dec_reader);
-            AlwaysOnTop = ReadBool(dec_reader);
-            OutsideRoom = ReadColor(dec_reader);
-            SetResolution = ReadBool(dec_reader);
+            AllowWindowResize = dec_reader.ReadBoolean();
+            AlwaysOnTop = dec_reader.ReadBoolean();
+            OutsideRoom = dec_reader.ReadColor();
+            SetResolution = dec_reader.ReadBoolean();
             ColorDepth = (ColourDepth)dec_reader.ReadInt32();
             ScreenResolution = (Resolution)dec_reader.ReadInt32();
             Frequency = (ScreenFrequency)dec_reader.ReadInt32();
-            Borderless = ReadBool(dec_reader);
-            VSync = ReadBool(dec_reader);
-            DisableScreensavers = ReadBool(dec_reader);
-            LetF4Fullscreen = ReadBool(dec_reader);
-            LetF1GameInfo = ReadBool(dec_reader);
-            LetESCEndGame = ReadBool(dec_reader);
-            LetF5F6SaveLoad = ReadBool(dec_reader);
-            LetF9Screenshot = ReadBool(dec_reader);
-            TreatCloseAsESC = ReadBool(dec_reader);
+            Borderless = dec_reader.ReadBoolean();
+            VSync = dec_reader.ReadBoolean();
+            DisableScreensavers = dec_reader.ReadBoolean();
+            LetF4Fullscreen = dec_reader.ReadBoolean();
+            LetF1GameInfo = dec_reader.ReadBoolean();
+            LetESCEndGame = dec_reader.ReadBoolean();
+            LetF5F6SaveLoad = dec_reader.ReadBoolean();
+            LetF9Screenshot = dec_reader.ReadBoolean();
+            TreatCloseAsESC = dec_reader.ReadBoolean();
             Priority = (GamePriority)dec_reader.ReadInt32();
-            FreezeWhenFocusLost = ReadBool(dec_reader);
+            FreezeWhenFocusLost = dec_reader.ReadBoolean();
             LoadingBarMode = (ProgBars)dec_reader.ReadInt32();
             BackLoadingBar = null;
             FrontLoadingBar = null;
             if (LoadingBarMode == ProgBars.BAR_CUSTOM)
             {
-                if (ReadBool(dec_reader))
+                if (dec_reader.ReadBoolean())
                 {
-                    BackLoadingBar = ReadZlibImage(dec_reader);
+                    BackLoadingBar = dec_reader.ReadZlibImage();
                 }
-                if (ReadBool(dec_reader))
+                if (dec_reader.ReadBoolean())
                 {
-                    FrontLoadingBar = ReadZlibImage(dec_reader);
+                    FrontLoadingBar = dec_reader.ReadZlibImage();
                 }
             }
-            ShowCustomLoadImage = ReadBool(dec_reader);
+            ShowCustomLoadImage = dec_reader.ReadBoolean();
             LoadingImage = null;
             if (ShowCustomLoadImage)
             {
-                if (ReadBool(dec_reader))
+                if (IsExe || dec_reader.ReadBoolean())
                 {
-                    LoadingImage = ReadZlibImage(dec_reader);
+                    LoadingImage = dec_reader.ReadZlibImage();
                 }
             }
-            LoadimgImagePartTransparent = ReadBool(dec_reader);
+            LoadimgImagePartTransparent = dec_reader.ReadBoolean();
             LoadImageAlpha = dec_reader.ReadInt32();
-            ScaleProgressBar = ReadBool(dec_reader);
-            GameIcon = ReadIcon(dec_reader);
-            DisplayErrors = ReadBool(dec_reader);
-            WriteToLog = ReadBool(dec_reader);
-            AbortOnAllErrors = ReadBool(dec_reader);
-            TreatUninitAsZero = ReadBool(dec_reader);
-            Author = ReadString(dec_reader);
-            Version = ReadString(dec_reader);
-            LastChanged = ReadDate(dec_reader);
-            Information = ReadString(dec_reader);
-            GameVersion = ReadVersion(dec_reader);
-            Company = ReadString(dec_reader);
-            Product = ReadString(dec_reader);
-            Copyright = ReadString(dec_reader);
-            Description = ReadString(dec_reader);
-            OptionsLastChanged = ReadDate(dec_reader);
+            ScaleProgressBar = dec_reader.ReadBoolean();
+            if (!IsExe) GameIcon = dec_reader.ReadIcon();
+            DisplayErrors = dec_reader.ReadBoolean();
+            WriteToLog = dec_reader.ReadBoolean();
+            AbortOnAllErrors = dec_reader.ReadBoolean();
+            TreatUninitAsZero = dec_reader.ReadBoolean();
+            if (!IsExe)
+            {
+                Author = dec_reader.ReadString();
+                Version = dec_reader.ReadString();
+                LastChanged = dec_reader.ReadDate();
+                Information = dec_reader.ReadString();
+                GameVersion = dec_reader.ReadVersion();
+                Company = dec_reader.ReadString();
+                Product = dec_reader.ReadString();
+                Copyright = dec_reader.ReadString();
+                Description = dec_reader.ReadString();
+                OptionsLastChanged = dec_reader.ReadDate();
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ using System.IO;
 
 namespace RussellLib.Code
 {
-    public class GMAction : StreamBase
+    public class GMAction
     {
 		public enum ActionType
 		{
@@ -70,7 +70,7 @@ namespace RussellLib.Code
 		public List<string> Arguments;
 		public bool IsNot;
 
-		public GMAction(BinaryReader reader)
+		public GMAction(ProjectReader reader)
         {
 			int actionver = reader.ReadInt32(); // what?
 			if (actionver != 440)
@@ -80,12 +80,12 @@ namespace RussellLib.Code
 			LibID = reader.ReadInt32();
 			ID = reader.ReadInt32();
 			Kind = (ActionType)reader.ReadInt32();
-			UseRelative = ReadBool(reader);
-			IsQuestion = ReadBool(reader);
-			UseApplyTo = ReadBool(reader);
+			UseRelative = reader.ReadBoolean();
+			IsQuestion = reader.ReadBoolean();
+			UseApplyTo = reader.ReadBoolean();
 			ExeType = (ActionExecuteType)reader.ReadInt32();
-			Name = ReadString(reader);
-			Code = ReadString(reader);
+			Name = reader.ReadString();
+			Code = reader.ReadString();
 			ArgumentCount = reader.ReadInt32();
 			int argc = reader.ReadInt32();
 			ArgumentTypes = new List<ActionArgType>(argc);
@@ -95,14 +95,14 @@ namespace RussellLib.Code
             }
 			Who = reader.ReadInt32();
 			WhoObj = null;
-			Relative = ReadBool(reader);
+			Relative = reader.ReadBoolean();
 			int argc2 = reader.ReadInt32();
 			Arguments = new List<string>(argc2);
 			for (int i = 0; i < argc2; i++)
             {
-				Arguments.Add(ReadString(reader));
+				Arguments.Add(reader.ReadString());
             }
-			IsNot = ReadBool(reader);
+			IsNot = reader.ReadBoolean();
 		}
 
 		public void PostLoad(GMProject proj)

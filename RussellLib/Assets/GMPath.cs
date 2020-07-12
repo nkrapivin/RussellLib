@@ -7,7 +7,7 @@ using System.IO;
 
 namespace RussellLib.Assets
 {
-    public class GMPath : StreamBase
+    public class GMPath
     {
         public string Name;
         public DateTime LastChanged;
@@ -19,13 +19,13 @@ namespace RussellLib.Assets
         public Point Snap;
         public List<PathPoint> Points;
 
-        public GMPath(BinaryReader reader)
+        public GMPath(ProjectReader reader)
         {
-            Name = ReadString(reader);
-            LastChanged = ReadDate(reader);
+            Name = reader.ReadString();
+            LastChanged = reader.ReadDate();
             reader.ReadInt32();
-            Smooth = ReadBool(reader);
-            Closed = ReadBool(reader);
+            Smooth = reader.ReadBoolean();
+            Closed = reader.ReadBoolean();
             Precision = reader.ReadUInt32();
             _BackgroundRoom = reader.ReadInt32();
 

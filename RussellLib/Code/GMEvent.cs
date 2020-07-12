@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using RussellLib.Base;
+using System.Collections.Generic;
 using System.IO;
 
 namespace RussellLib.Code
@@ -8,7 +9,7 @@ namespace RussellLib.Code
         public List<GMAction> Actions;
         public int Key; // only used in GMObject.
 
-        public GMEvent(BinaryReader reader)
+        public GMEvent(ProjectReader reader)
         {
             int version = reader.ReadInt32(); // 400?
             if (version != 400)

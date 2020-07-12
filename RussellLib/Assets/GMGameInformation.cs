@@ -5,7 +5,7 @@ using System.IO;
 
 namespace RussellLib.Assets
 {
-    public class GMGameInformation : StreamBase
+    public class GMGameInformation
     {
         public Color BackgroundColor;
         public bool SeparateWindow;
@@ -18,23 +18,23 @@ namespace RussellLib.Assets
         public DateTime LastChanged;
         public string Text; // it's an rtf string.
 
-        public GMGameInformation(BinaryReader reader)
+        public GMGameInformation(ProjectReader reader)
         {
-            BackgroundColor = ReadColor(reader);
-            SeparateWindow = ReadBool(reader);
-            Caption = ReadString(reader);
+            BackgroundColor = reader.ReadColor();
+            SeparateWindow = reader.ReadBoolean();
+            Caption = reader.ReadString();
             int _l, _t, _w, _h;
             _l = reader.ReadInt32();
             _t = reader.ReadInt32();
             _w = reader.ReadInt32();
             _h = reader.ReadInt32();
             Position = new Rectangle(_l, _t, _w, _h);
-            ShowBorder = ReadBool(reader);
-            AllowResize = ReadBool(reader);
-            AlwaysOnTop = ReadBool(reader);
-            Freeze = ReadBool(reader);
-            LastChanged = ReadDate(reader);
-            Text = ReadString(reader);
+            ShowBorder = reader.ReadBoolean();
+            AllowResize = reader.ReadBoolean();
+            AlwaysOnTop = reader.ReadBoolean();
+            Freeze = reader.ReadBoolean();
+            LastChanged = reader.ReadDate();
+            Text = reader.ReadString();
 
             reader.Dispose();
         }

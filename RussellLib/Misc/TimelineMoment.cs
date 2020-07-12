@@ -1,4 +1,5 @@
-﻿using RussellLib.Code;
+﻿using RussellLib.Base;
+using RussellLib.Code;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +12,7 @@ namespace RussellLib.Misc
         public int Point;
         public GMEvent Event;
 
-        public TimelineMoment(BinaryReader reader)
+        public TimelineMoment(ProjectReader reader)
         {
             Point = reader.ReadInt32();
             Event = new GMEvent(reader);

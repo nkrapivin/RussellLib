@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RussellLib.Assets
 {
-    public class GMSound : StreamBase
+    public class GMSound
     {
         public string Name;
         public DateTime LastChanged;
@@ -40,10 +40,10 @@ namespace RussellLib.Assets
             MULTIMEDIA
         }
 
-        public GMSound(BinaryReader reader)
+        public GMSound(ProjectReader reader)
         {
-            Name = ReadString(reader);
-            LastChanged = ReadDate(reader);
+            Name = reader.ReadString();
+            LastChanged = reader.ReadDate();
             int Version = reader.ReadInt32();
             if (Version != 800)
             {
@@ -51,10 +51,10 @@ namespace RussellLib.Assets
             }
 
             Kind = (SoundKind)reader.ReadInt32();
-            FileType = ReadString(reader);
-            FileName = ReadString(reader);
+            FileType = reader.ReadString();
+            FileName = reader.ReadString();
             Data = null;
-            if (ReadBool(reader))
+            if (reader.ReadBoolean())
             {
                 int size = reader.ReadInt32();
                 Data = reader.ReadBytes(size);
@@ -74,7 +74,7 @@ namespace RussellLib.Assets
 
             Volume = reader.ReadDouble();
             Panning = reader.ReadDouble();
-            Preload = ReadBool(reader);
+            Preload = reader.ReadBoolean();
 
             reader.Dispose();
         }

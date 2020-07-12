@@ -6,16 +6,16 @@ using System.IO;
 
 namespace RussellLib.Assets
 {
-    public class GMTimeline : StreamBase
+    public class GMTimeline
     {
         public string Name;
         public DateTime LastChanged;
         public List<TimelineMoment> Moments;
 
-        public GMTimeline(BinaryReader reader)
+        public GMTimeline(ProjectReader reader)
         {
-            Name = ReadString(reader);
-            LastChanged = ReadDate(reader);
+            Name = reader.ReadString();
+            LastChanged = reader.ReadDate();
             int version = reader.ReadInt32();
 
             int momentcount = reader.ReadInt32();

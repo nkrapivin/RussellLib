@@ -4,22 +4,22 @@ using System.IO;
 
 namespace RussellLib.Assets
 {
-    public class GMScript : StreamBase
+    public class GMScript
     {
         public string Name;
         public DateTime LastChanged;
         public string Code;
 
-        public GMScript(BinaryReader reader)
+        public GMScript(ProjectReader reader)
         {
-            Name = ReadString(reader);
-            LastChanged = ReadDate(reader);
+            Name = reader.ReadString();
+            LastChanged = reader.ReadDate();
             int version = reader.ReadInt32();
             if (version != 800)
             {
                 throw new InvalidDataException("This library only supports .gmk GM8.0 files.");
             }
-            Code = ReadString(reader);
+            Code = reader.ReadString();
 
             reader.Dispose();
         }

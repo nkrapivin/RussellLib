@@ -5,7 +5,7 @@ using System.IO;
 
 namespace RussellLib.Assets
 {
-    public class GMBackground : StreamBase
+    public class GMBackground
     {
         public string Name;
         public DateTime LastChanged;
@@ -16,16 +16,14 @@ namespace RussellLib.Assets
         public int OffsetV;
         public int SepH;
         public int SepV;
-        public int Width;
-        public int Height;
         public Image Background;
 
-        public GMBackground(BinaryReader reader)
+        public GMBackground(ProjectReader reader)
         {
-            Name = ReadString(reader);
-            LastChanged = ReadDate(reader);
+            Name = reader.ReadString();
+            LastChanged = reader.ReadDate();
             reader.ReadInt32(); // version that we don't care about here.
-            UseAsTileset = ReadBool(reader);
+            UseAsTileset = reader.ReadBoolean();
             TileWidth = reader.ReadInt32();
             TileHeight = reader.ReadInt32();
             OffsetH = reader.ReadInt32();
@@ -33,15 +31,16 @@ namespace RussellLib.Assets
             SepH = reader.ReadInt32();
             SepV = reader.ReadInt32();
             reader.ReadInt32(); // frame version
+            int Width, Height;
             Width = reader.ReadInt32();
             Height = reader.ReadInt32();
             Background = null;
-            if (Width * Height != 0) Background = ReadBGRAImage(reader, Width, Height);
+            if (Width * Height != 0) Background = reader.ReadBGRAImage(Width, Height);
 
             reader.Dispose();
         }
 
-        public GMBackground(BinaryReader reader, bool _gmbck)
+        public GMBackground(ProjectReader reader, bool _gmbck)
         {
             // Same as .gmspr...
 
@@ -51,7 +50,7 @@ namespace RussellLib.Assets
                 throw new InvalidDataException("Wrong GMBCK magic, got " + magic);
             }
 
-            var dec_reader = MakeReaderZlib(reader);
+            var dec_reader = reader.MakeReaderZlib();
 
             int version = dec_reader.ReadInt32();
             if (version != 710)
@@ -59,7 +58,7 @@ namespace RussellLib.Assets
                 throw new InvalidDataException("Unknown GMBCK version, got " + magic);
             }
 
-            UseAsTileset = ReadBool(reader);
+            UseAsTileset = reader.ReadBoolean();
             TileWidth = reader.ReadInt32();
             TileHeight = reader.ReadInt32();
             OffsetH = reader.ReadInt32();
@@ -73,10 +72,11 @@ namespace RussellLib.Assets
                 throw new InvalidDataException("Unknown GMBCK image version, got " + magic);
             }
 
+            int Width, Height;
             Width = reader.ReadInt32();
             Height = reader.ReadInt32();
             Background = null;
-            if (Width * Height != 0) Background = ReadBGRAImage(reader, Width, Height);
+            if (Width * Height != 0) Background = reader.ReadBGRAImage(Width, Height);
 
             dec_reader.Dispose();
         }

@@ -1,11 +1,10 @@
 ﻿using RussellLib.Assets;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace RussellLib.Base
 {
-    public class ResourceTreeItem : StreamBase
+    public class ResourceTreeItem
     {
         // WARNING this implementation of a resource tree is pretty horrible.
         // but it's enough to make it work in WinForms :p
@@ -31,12 +30,12 @@ namespace RussellLib.Base
             typeof(GMOptions),typeof(GMTimeline), typeof(string) // extension pkgs, since making an additional class like GMExtensionPackage isn't the "nik-way"
         };
 
-        public ResourceTreeItem(BinaryReader reader)
+        public ResourceTreeItem(ProjectReader reader)
         {
             Status = (ResourceStatus)reader.ReadInt32();
             ResType = RESOURCE_KIND[reader.ReadInt32()];
             Index = reader.ReadInt32();
-            Name = ReadString(reader);
+            Name = reader.ReadString();
             int content = reader.ReadInt32();
             Resources = new List<ResourceTreeItem>(content);
             for (int i = 0; i < content; i++)

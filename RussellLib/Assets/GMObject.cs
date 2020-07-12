@@ -6,7 +6,7 @@ using System.IO;
 
 namespace RussellLib.Assets
 {
-    public class GMObject : StreamBase
+    public class GMObject
     {
         public string Name;
         public DateTime LastChanged;
@@ -20,10 +20,10 @@ namespace RussellLib.Assets
         public GMSprite Mask;
         public List<List<GMEvent>> Events;
 
-        public GMObject(BinaryReader reader, GMProject proj)
+        public GMObject(ProjectReader reader, GMProject proj)
         {
-            Name = ReadString(reader);
-            LastChanged = ReadDate(reader);
+            Name = reader.ReadString();
+            LastChanged = reader.ReadDate();
             int version = reader.ReadInt32();
             if (version != 430)
             {
@@ -35,10 +35,10 @@ namespace RussellLib.Assets
                 Sprite = proj.Sprites[spr];
             }
 
-            Solid = ReadBool(reader);
-            Visible = ReadBool(reader);
+            Solid = reader.ReadBoolean();
+            Visible = reader.ReadBoolean();
             Depth = reader.ReadInt32();
-            Persistent = ReadBool(reader);
+            Persistent = reader.ReadBoolean();
             _ParentInd = reader.ReadInt32();
             int mask = reader.ReadInt32();
             if (mask > -1)

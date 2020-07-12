@@ -3,7 +3,7 @@ using System.IO;
 
 namespace RussellLib.Assets
 {
-    public class GMTrigger : StreamBase
+    public class GMTrigger
     {
         public string Name;
         public string Condition;
@@ -17,7 +17,7 @@ namespace RussellLib.Assets
             EndStep
         }
 
-        public GMTrigger(BinaryReader reader)
+        public GMTrigger(ProjectReader reader)
         {
             int Version = reader.ReadInt32();
 
@@ -26,10 +26,10 @@ namespace RussellLib.Assets
                 throw new InvalidDataException("Wrong project version.");
             }
 
-            Name = ReadString(reader);
-            Condition = ReadString(reader);
+            Name = reader.ReadString();
+            Condition = reader.ReadString();
             Event = (TriggerEvent)reader.ReadInt32();
-            ConstName = ReadString(reader);
+            ConstName = reader.ReadString();
         }
     }
 }
