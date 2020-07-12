@@ -5,10 +5,10 @@
 RussellLib is a C# library to read GM8.0 .gmk project files.
 
 
-kinda works, only for GM8.0 .gmk files and it doesn't read the resource tree, but if you want to dump something then it's fine.
+kinda works, only for GM8.0 .gmk files... It does read the Resource Tree so if you want to make an IDE, go ahead!
 
 
-wiki with format documentation coming...
+write & GM8.1 support coming...
 
 
 under construction!
