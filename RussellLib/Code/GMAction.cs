@@ -52,6 +52,7 @@ namespace RussellLib.Code
             ARG_FONT
         }
 
+        public int Version;
         public int LibID;
         public int ID;
         public ActionType Kind;
@@ -69,12 +70,45 @@ namespace RussellLib.Code
         public List<string> Arguments;
         public bool IsNot;
 
+        public void Save(ProjectWriter writer, GMProject proj)
+        {
+            writer.Write(Version);
+            writer.Write(LibID);
+            writer.Write(ID);
+            writer.Write((int)Kind);
+            writer.Write(UseRelative);
+            writer.Write(IsQuestion);
+            writer.Write(UseApplyTo);
+            writer.Write((int)ExeType);
+            writer.Write(Name);
+            writer.Write(Code);
+            writer.Write(ArgumentCount);
+            writer.Write(ArgumentTypes.Count);
+            for (int i = 0; i < ArgumentTypes.Count; i++)
+            {
+                writer.Write((int)ArgumentTypes[i]);
+            }
+            if (WhoObj == null) writer.Write(Who); // -1 = self, -2 = other...
+            else
+            {
+                writer.Write(proj.Objects.IndexOf(WhoObj));
+            }
+
+            writer.Write(Relative);
+            writer.Write(Arguments.Count);
+            for (int i = 0; i < Arguments.Count; i++)
+            {
+                writer.Write(Arguments[i]);
+            }
+            writer.Write(IsNot);
+        }
+
         public GMAction(ProjectReader reader)
         {
-            int actionver = reader.ReadInt32(); // what?
-            if (actionver != 440)
+            Version = reader.ReadInt32(); // what?
+            if (Version != 440)
             {
-                throw new Exception("Invalid Action version, got " + actionver);
+                throw new Exception("Invalid Action version, got " + Version);
             }
             LibID = reader.ReadInt32();
             ID = reader.ReadInt32();

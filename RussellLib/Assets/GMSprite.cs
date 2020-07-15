@@ -8,6 +8,7 @@ namespace RussellLib.Assets
 {
     public class GMSprite
     {
+        public int Version;
         public string Name;
         public DateTime LastChanged;
         public Point Origin;
@@ -35,11 +36,37 @@ namespace RussellLib.Assets
             MANUAL
         }
 
+        public void Save(ProjectWriter writer)
+        {
+            writer.Write(Name);
+            writer.Write(LastChanged);
+            writer.Write(Version);
+            writer.Write(Origin);
+
+            writer.Write(Subimages.Count);
+            for (int i = 0; i < Subimages.Count; i++)
+            {
+                var frame = Subimages[i];
+                writer.Write(800);
+                writer.Write(frame.Size);
+                if (frame.Width * frame.Height != 0)
+                {
+                    writer.Write(frame, true);
+                }
+            }
+
+            writer.Write((int)MaskMode);
+            writer.Write(AlphaTolerance);
+            writer.Write(SeparateMasks);
+            writer.Write((int)BBoxMode);
+            writer.Write(BBox);
+        }
+
         public GMSprite(ProjectReader reader)
         {
             Name = reader.ReadString();
             LastChanged = reader.ReadDate();
-            int Version = reader.ReadInt32();
+            Version = reader.ReadInt32();
             if (Version != 800)
             {
                 throw new InvalidDataException("This library only supports .gmk GM8.0 files.");

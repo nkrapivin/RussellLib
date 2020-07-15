@@ -10,9 +10,11 @@ namespace RussellLib.Base
 {
     public class ProjectReader : BinaryReader
     {
-        public ProjectReader(Stream input) : base(input)
+        private bool UseUTF8;
+
+        public ProjectReader(Stream input, bool use_utf8 = true) : base(input)
         {
-            
+            UseUTF8 = use_utf8;
         }
 
         public override bool ReadBoolean()
@@ -22,7 +24,8 @@ namespace RussellLib.Base
 
         public override string ReadString()
         {
-            return Encoding.UTF8.GetString(ReadBytes(ReadInt32())); // some project files don't use UTF8...
+            if (UseUTF8) return Encoding.UTF8.GetString(ReadBytes(ReadInt32())); // some project files don't use UTF8...
+            else return Encoding.Default.GetString(ReadBytes(ReadInt32())); // sorta fix russian language in project files...
         }
 
         public Version ReadVersion()

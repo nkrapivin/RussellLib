@@ -6,16 +6,25 @@ namespace RussellLib.Assets
 {
     public class GMScript
     {
+        public int Version;
         public string Name;
         public DateTime LastChanged;
         public string Code;
+
+        public void Save(ProjectWriter writer)
+        {
+            writer.Write(Name);
+            writer.Write(LastChanged);
+            writer.Write(Version);
+            writer.Write(Code);
+        }
 
         public GMScript(ProjectReader reader)
         {
             Name = reader.ReadString();
             LastChanged = reader.ReadDate();
-            int version = reader.ReadInt32();
-            if (version != 800)
+            Version = reader.ReadInt32();
+            if (Version != 800)
             {
                 throw new InvalidDataException("This library only supports .gmk GM8.0 files.");
             }

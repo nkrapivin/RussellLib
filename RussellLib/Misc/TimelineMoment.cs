@@ -1,9 +1,5 @@
 ﻿using RussellLib.Base;
 using RussellLib.Code;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 
 namespace RussellLib.Misc
 {
@@ -11,6 +7,12 @@ namespace RussellLib.Misc
     {
         public int Point;
         public GMEvent Event;
+
+        public void Save(ProjectWriter writer, GMProject proj)
+        {
+            writer.Write(Point);
+            Event.Save(writer, proj);
+        }
 
         public TimelineMoment(ProjectReader reader)
         {

@@ -1,0 +1,11 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace RussellLib.Assets
+{
+    public class GMShader
+    {
+        // GMK 820??????????????????
+    }
+}

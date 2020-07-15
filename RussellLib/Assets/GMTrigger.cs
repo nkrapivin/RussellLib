@@ -5,6 +5,7 @@ namespace RussellLib.Assets
 {
     public class GMTrigger
     {
+        public int Version;
         public string Name;
         public string Condition;
         public TriggerEvent Event;
@@ -17,9 +18,18 @@ namespace RussellLib.Assets
             EndStep
         }
 
+        public void Save(ProjectWriter writer)
+        {
+            writer.Write(Version);
+            writer.Write(Name);
+            writer.Write(Condition);
+            writer.Write((int)Event);
+            writer.Write(ConstName);
+        }
+
         public GMTrigger(ProjectReader reader)
         {
-            int Version = reader.ReadInt32();
+            Version = reader.ReadInt32();
 
             if (Version != 800)
             {

@@ -1,12 +1,12 @@
 ﻿using RussellLib.Base;
 using System;
 using System.Drawing;
-using System.IO;
 
 namespace RussellLib.Assets
 {
     public class GMGameInformation
     {
+        public int Version;
         public Color BackgroundColor;
         public bool SeparateWindow;
         public string Caption;
@@ -17,6 +17,20 @@ namespace RussellLib.Assets
         public bool Freeze; // freeze the game while showing help or not
         public DateTime LastChanged;
         public string Text; // it's an rtf string.
+
+        public void Save(ProjectWriter writer)
+        {
+            writer.Write(BackgroundColor);
+            writer.Write(SeparateWindow);
+            writer.Write(Caption);
+            writer.Write(Position);
+            writer.Write(ShowBorder);
+            writer.Write(AllowResize);
+            writer.Write(AlwaysOnTop);
+            writer.Write(Freeze);
+            writer.Write(LastChanged);
+            writer.Write(Text);
+        }
 
         public GMGameInformation(ProjectReader reader)
         {

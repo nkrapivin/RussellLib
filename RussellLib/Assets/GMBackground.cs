@@ -7,6 +7,8 @@ namespace RussellLib.Assets
 {
     public class GMBackground
     {
+        public int Version;
+        public int FrameVersion;
         public string Name;
         public DateTime LastChanged;
         public bool UseAsTileset;
@@ -18,11 +20,37 @@ namespace RussellLib.Assets
         public int SepV;
         public Image Background;
 
+        public void Save(ProjectWriter writer)
+        {
+            writer.Write(Name);
+            writer.Write(LastChanged);
+            writer.Write(Version);
+            writer.Write(UseAsTileset);
+            writer.Write(TileWidth);
+            writer.Write(TileHeight);
+            writer.Write(OffsetH);
+            writer.Write(OffsetV);
+            writer.Write(SepH);
+            writer.Write(SepV);
+            writer.Write(FrameVersion);
+            if (Background != null)
+            {
+                writer.Write(Background.Size);
+                writer.Write(Background, true);
+            }
+            else
+            {
+                // w = 0, h = 0, no image.
+                writer.Write(0);
+                writer.Write(0);
+            }
+        }
+
         public GMBackground(ProjectReader reader)
         {
             Name = reader.ReadString();
             LastChanged = reader.ReadDate();
-            reader.ReadInt32(); // version that we don't care about here.
+            Version = reader.ReadInt32(); // version that we don't care about here.
             UseAsTileset = reader.ReadBoolean();
             TileWidth = reader.ReadInt32();
             TileHeight = reader.ReadInt32();
@@ -30,7 +58,7 @@ namespace RussellLib.Assets
             OffsetV = reader.ReadInt32();
             SepH = reader.ReadInt32();
             SepV = reader.ReadInt32();
-            reader.ReadInt32(); // frame version
+            FrameVersion = reader.ReadInt32(); // frame version
             int Width, Height;
             Width = reader.ReadInt32();
             Height = reader.ReadInt32();

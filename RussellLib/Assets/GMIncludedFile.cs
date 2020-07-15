@@ -2,12 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace RussellLib.Assets
 {
     public class GMIncludedFile
     {
+        public int Version;
         public DateTime LastChanged;
         public string FileName;
         public string FilePath;
@@ -29,13 +29,34 @@ namespace RussellLib.Assets
             CUSTOM_FOLDER
         }
 
+        public void Save(ProjectWriter writer)
+        {
+            writer.Write(LastChanged);
+            writer.Write(Version);
+            writer.Write(FileName);
+            writer.Write(FilePath);
+            writer.Write(Original);
+            writer.Write(FileSize);
+            writer.Write(StoreInProject);
+            if (StoreInProject)
+            {
+                writer.Write(Data.Length);
+                writer.Write(Data);
+            }
+            writer.Write((int)ExportKind);
+            writer.Write(ExportFolder);
+            writer.Write(Overwrite);
+            writer.Write(FreeMemory);
+            writer.Write(RemoveAtGameEnd);
+        }
+
         public GMIncludedFile(ProjectReader reader)
         {
             LastChanged = reader.ReadDate();
-            int version = reader.ReadInt32();
-            if (version != 800)
+            Version = reader.ReadInt32();
+            if (Version != 800)
             {
-                throw new InvalidDataException("Wrong Included File version, got " + version);
+                throw new InvalidDataException("Wrong Included File version, got " + Version);
             }
 
             FileName = reader.ReadString();

@@ -27,8 +27,21 @@ namespace RussellLib.Base
         {
             null, typeof(GMObject), typeof(GMSprite), typeof(GMSound),
             typeof(GMRoom),null,typeof(GMBackground),typeof(GMScript),typeof(GMPath),typeof(GMFont),typeof(GMGameInformation),
-            typeof(GMOptions),typeof(GMTimeline), typeof(string) // extension pkgs, since making an additional class like GMExtensionPackage isn't the "nik-way"
+            typeof(GMOptions),typeof(GMTimeline), typeof(string) /* extension pkg names */, typeof(GMShader) // gmk 820 only.
         };
+
+        public void Save(ProjectWriter writer)
+        {
+            writer.Write((int)Status);
+            writer.Write(Array.IndexOf(RESOURCE_KIND, ResType));
+            writer.Write(Index);
+            writer.Write(Name);
+            writer.Write(Resources.Count);
+            for (int i = 0; i < Resources.Count; i++)
+            {
+                Resources[i].Save(writer);
+            }
+        }
 
         public ResourceTreeItem(ProjectReader reader)
         {

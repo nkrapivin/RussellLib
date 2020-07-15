@@ -8,12 +8,14 @@ namespace RussellLib.Assets
 {
     public class GMSound
     {
+        public int Version;
         public string Name;
         public DateTime LastChanged;
         public SoundKind Kind;
         public string FileType;
         public string FileName;
         public byte[] Data;
+
 
         public bool[] Effects;
 
@@ -40,11 +42,49 @@ namespace RussellLib.Assets
             MULTIMEDIA
         }
 
+        public void Save(ProjectWriter writer)
+        {
+            writer.Write(Name);
+            writer.Write(LastChanged);
+            writer.Write(Version);
+            writer.Write((int)Kind);
+            writer.Write(FileType);
+            writer.Write(FileName);
+            if (Data != null)
+            {
+                writer.Write(1);
+                writer.Write(Data.Length);
+                writer.Write(Data);
+            }
+            else writer.Write(0);
+
+            writer.Write(GetEffectsInt());
+
+            writer.Write(Volume);
+            writer.Write(Panning);
+            writer.Write(Preload);
+        }
+
+        // thx LateralGM for this one.
+        private int GetEffectsInt()
+        {
+            int effects = 0;
+            int n = 1;
+            int efflen = (int)SoundEffects.__LENGTH;
+            for (int i = 0; i < efflen; i++)
+            {
+                if (Effects[i]) effects |= n;
+                n <<= 1;
+            }
+
+            return effects;
+        }
+
         public GMSound(ProjectReader reader)
         {
             Name = reader.ReadString();
             LastChanged = reader.ReadDate();
-            int Version = reader.ReadInt32();
+            Version = reader.ReadInt32();
             if (Version != 800)
             {
                 throw new InvalidDataException("This library only supports .gmk GM8.0 files.");

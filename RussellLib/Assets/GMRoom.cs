@@ -9,6 +9,7 @@ namespace RussellLib.Assets
 {
     public class GMRoom
     {
+        public int Version;
         public string Name;
         public DateTime LastChanged;
         public string Caption;
@@ -51,11 +52,64 @@ namespace RussellLib.Assets
             Views
         }
 
+        public void Save(ProjectWriter writer, GMProject proj)
+        {
+            writer.Write(Name);
+            writer.Write(LastChanged);
+            writer.Write(Version);
+            writer.Write(Caption);
+            writer.Write(Width);
+            writer.Write(Height);
+            writer.Write(Snap);
+            writer.Write(Isometric);
+            writer.Write(Speed);
+            writer.Write(Persistent);
+            writer.Write(BackgroundColor);
+            writer.Write(DrawBackgroundColor);
+            writer.Write(CreationCode);
+            writer.Write(Backgrounds.Count);
+            for (int i = 0; i < Backgrounds.Count; i++)
+            {
+                Backgrounds[i].Save(writer, proj);
+            }
+            writer.Write(EnableViews);
+            writer.Write(Views.Count);
+            for (int i = 0; i < Views.Count; i++)
+            {
+                Views[i].Save(writer, proj);
+            }
+            writer.Write(Instances.Count);
+            for (int i = 0; i < Instances.Count; i++)
+            {
+                Instances[i].Save(writer, proj);
+            }
+            writer.Write(Tiles.Count);
+            for (int i = 0; i < Tiles.Count; i++)
+            {
+                Tiles[i].Save(writer, proj);
+            }
+
+            // weird Room Editor settings...
+            writer.Write(REI);
+            writer.Write(EditorWidth);
+            writer.Write(EditorHeight);
+            writer.Write(ShowGrid);
+            writer.Write(ShowObjects);
+            writer.Write(ShowTiles);
+            writer.Write(ShowBGs);
+            writer.Write(ShowFGs);
+            writer.Write(ShowViews);
+            writer.Write(DeleteUnderlyingObj);
+            writer.Write(DeleteUnderlyingTil);
+            writer.Write((int)Tab);
+            writer.Write(Scrollbar);
+        }
+
         public GMRoom(ProjectReader reader, GMProject proj)
         {
             Name = reader.ReadString();
             LastChanged = reader.ReadDate();
-            int version = reader.ReadInt32();
+            Version = reader.ReadInt32();
             Caption = reader.ReadString();
             Width = reader.ReadUInt32();
             Height = reader.ReadUInt32();
@@ -75,20 +129,7 @@ namespace RussellLib.Assets
             for (int i = 0; i < bgcount; i++)
             {
                 var bgstruct = new RoomBackground();
-                bgstruct.Visible = reader.ReadBoolean();
-                bgstruct.IsForeground = reader.ReadBoolean();
-                bgstruct.Background = null;
-                int bgid = reader.ReadInt32();
-                if (bgid > -1) bgstruct.Background = proj.Backgrounds[bgid];
-                int _bgx = reader.ReadInt32();
-                int _bgy = reader.ReadInt32();
-                bgstruct.Position = new Point(_bgx, _bgy);
-                bgstruct.TileHorizontal = reader.ReadBoolean();
-                bgstruct.TileVertical = reader.ReadBoolean();
-                bgstruct.SpeedHorizontal = reader.ReadInt32();
-                bgstruct.SpeedVertical = reader.ReadInt32();
-                bgstruct.Stretch = reader.ReadBoolean();
-
+                bgstruct.Load(reader, proj);
                 Backgrounds.Add(bgstruct);
             }
 
@@ -99,24 +140,8 @@ namespace RussellLib.Assets
             for (int i = 0; i < viewcount; i++)
             {
                 var viewstruct = new RoomView();
-                int _x, _y, _w, _h;
-                viewstruct.Visible = reader.ReadBoolean();
-                _x = reader.ReadInt32();
-                _y = reader.ReadInt32();
-                _w = reader.ReadInt32();
-                _h = reader.ReadInt32();
-                viewstruct.ViewCoords = new Rectangle(_x, _y, _w, _h);
-                _x = reader.ReadInt32();
-                _y = reader.ReadInt32();
-                _w = reader.ReadInt32();
-                _h = reader.ReadInt32();
-                viewstruct.PortCoords = new Rectangle(_x, _y, _w, _h);
-                viewstruct.BorderHor = reader.ReadInt32();
-                viewstruct.BorderVert = reader.ReadInt32();
-                viewstruct.HSpeed = reader.ReadInt32();
-                viewstruct.VSpeed = reader.ReadInt32();
-                int _objind = reader.ReadInt32();
-                if (_objind > -1) viewstruct.ViewObject = proj.Objects[_objind];
+                viewstruct.Load(reader, proj);
+                Views.Add(viewstruct);
             }
 
             // Read room instances.
@@ -125,15 +150,8 @@ namespace RussellLib.Assets
             for (int i = 0; i < instcount; i++)
             {
                 var inststruct = new RoomInstance();
-                int _x, _y;
-                _x = reader.ReadInt32();
-                _y = reader.ReadInt32();
-                inststruct.Position = new Point(_x, _y);
-                int _objind = reader.ReadInt32();
-                if (_objind > -1) inststruct.Object = proj.Objects[_objind];
-                inststruct.ID = reader.ReadInt32();
-                inststruct.CreationCode = reader.ReadString();
-                inststruct.IsLocked = reader.ReadBoolean();
+                inststruct.Load(reader, proj);
+                Instances.Add(inststruct);
             }
 
             // Read room tiles.
@@ -142,18 +160,8 @@ namespace RussellLib.Assets
             for (int i = 0; i < tilecount; i++)
             {
                 var tilestruct = new RoomTile();
-                int _x, _y, _w, _h;
-                _x = reader.ReadInt32();
-                _y = reader.ReadInt32();
-                tilestruct.RoomPosition = new Point(_x, _y);
-                _x = reader.ReadInt32();
-                _y = reader.ReadInt32();
-                _w = reader.ReadInt32();
-                _h = reader.ReadInt32();
-                tilestruct.BGCoords = new Rectangle(_x, _y, _w, _h);
-                tilestruct.Depth = reader.ReadInt32();
-                tilestruct.ID = reader.ReadInt32();
-                tilestruct.IsLocked = reader.ReadBoolean();
+                tilestruct.Load(reader, proj);
+                Tiles.Add(tilestruct);
             }
 
             // weird editor settings (aren't really important unless you make an IDE)

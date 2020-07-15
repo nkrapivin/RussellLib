@@ -3,12 +3,12 @@ using RussellLib.Misc;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 
 namespace RussellLib.Assets
 {
     public class GMPath
     {
+        public int Version;
         public string Name;
         public DateTime LastChanged;
         public bool Smooth;
@@ -19,11 +19,32 @@ namespace RussellLib.Assets
         public Point Snap;
         public List<PathPoint> Points;
 
+        public void Save(ProjectWriter writer, GMProject proj)
+        {
+            writer.Write(Name);
+            writer.Write(LastChanged);
+            writer.Write(Version);
+            writer.Write(Smooth);
+            writer.Write(Closed);
+            writer.Write(Precision);
+            if (BackgroundRoom != null)
+            {
+                writer.Write(proj.Rooms.IndexOf(BackgroundRoom));
+            }
+            else writer.Write(-1);
+            writer.Write(Snap);
+            writer.Write(Points.Count);
+            for (int i = 0; i < Points.Count; i++)
+            {
+                writer.Write(Points[i]);
+            }
+        }
+
         public GMPath(ProjectReader reader)
         {
             Name = reader.ReadString();
             LastChanged = reader.ReadDate();
-            reader.ReadInt32();
+            Version = reader.ReadInt32();
             Smooth = reader.ReadBoolean();
             Closed = reader.ReadBoolean();
             Precision = reader.ReadUInt32();

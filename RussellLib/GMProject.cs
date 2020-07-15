@@ -1,4 +1,5 @@
-﻿using RussellLib.Assets;
+﻿using Ionic.Zlib;
+using RussellLib.Assets;
 using RussellLib.Base;
 using System;
 using System.Collections.Generic;
@@ -40,9 +41,339 @@ namespace RussellLib
 
         public List<ResourceTreeItem> ResourceTree; // ......
 
-        public GMProject(Stream input)
+        public GMProject(Stream input, bool use_utf8 = true)
         {
-            Load_Main(new ProjectReader(input));
+            Load_Main(new ProjectReader(input, use_utf8));
+        }
+
+        public void Save(string path)
+        {
+            var fstream = File.OpenWrite(path);
+            var fwriter = new ProjectWriter(fstream);
+            Save_Main(fwriter);
+            fwriter.Dispose();
+        }
+
+        public void Save(Stream stream)
+        {
+            var writer = new ProjectWriter(stream);
+            Save_Main(writer);
+            stream.Flush();
+            writer.Dispose();
+        }
+
+        private void Save_Main(ProjectWriter writer)
+        {
+            const int Magic = 1234321;
+            writer.Write(Magic);
+            writer.Write(Version);
+            Save_Header(writer);
+            Save_Options(writer);
+            Save_Triggers(writer);
+            Save_Constants(writer);
+            Save_Sounds(writer);
+            Save_Sprites(writer);
+            Save_Backgrounds(writer);
+            Save_Paths(writer);
+            Save_Scripts(writer);
+            Save_Fonts(writer);
+            Save_Timelines(writer);
+            Save_Objects(writer);
+            Save_Rooms(writer);
+            Save_LastIDs(writer);
+            Save_IncludedFiles(writer);
+            Save_ExtensionPackages(writer);
+            Save_GameInformation(writer);
+            Save_LibCreationCode(writer);
+            Save_RoomOrder(writer);
+            Save_ResourceTree(writer);
+        }
+
+        private void Save_ResourceTree(ProjectWriter writer)
+        {
+            for (int i = 0; i < ResourceTree.Count; i++)
+            {
+                ResourceTree[i].Save(writer);
+            }
+        }
+
+        private void Save_Header(ProjectWriter writer)
+        {
+            writer.Write(GameID);
+            writer.Write(DirectPlayGuid);
+        }
+
+        private void Save_Triggers(ProjectWriter writer)
+        {
+            writer.Write(800); // version
+            writer.Write(Triggers.Count);
+            for (int i = 0; i < Triggers.Count; i++)
+            {
+                var t = Triggers[i];
+                if (t == null) Save_NullItem(writer);
+                else
+                {
+                    var z_writer = new ProjectWriter(new MemoryStream());
+                    t.Save(z_writer);
+                    writer.WriteZlibChunk(z_writer);
+                }
+            }
+            writer.Write(TriggersLastChanged);
+        }
+
+        private void Save_NullItem(ProjectWriter writer)
+        {
+            var stream = new MemoryStream();
+            var w = new ProjectWriter(stream);
+            w.Write(0);
+            writer.WriteZlibChunk(w);
+        }
+
+        private void Save_Options(ProjectWriter writer)
+        {
+            writer.Write(Options.FormatVersion);
+            var z_writer = new ProjectWriter(new MemoryStream());
+            Options.Write(z_writer);
+            writer.WriteZlibChunk(z_writer);
+        }
+
+        private void Save_Constants(ProjectWriter writer)
+        {
+            writer.Write(800);
+            writer.Write(Constants.Count);
+            for (int i = 0; i < Constants.Count; i++)
+            {
+                var c = Constants[i];
+                c.Save(writer);
+            }
+            writer.Write(ConstantsLastChanged);
+        }
+
+        private void Save_Sounds(ProjectWriter writer)
+        {
+            writer.Write(800);
+            writer.Write(Sounds.Count);
+            for (int i = 0; i < Sounds.Count; i++)
+            {
+                var s = Sounds[i];
+                if (s == null) Save_NullItem(writer);
+                else
+                {
+                    var z_writer = new ProjectWriter(new MemoryStream());
+                    z_writer.Write(1);
+                    s.Save(z_writer);
+                    writer.WriteZlibChunk(z_writer);
+                }
+            }
+        }
+
+        private void Save_Sprites(ProjectWriter writer)
+        {
+            writer.Write(800);
+            writer.Write(Sprites.Count);
+            for (int i = 0; i < Sprites.Count; i++)
+            {
+                var s = Sprites[i];
+                if (s == null) Save_NullItem(writer);
+                else
+                {
+                    var z_writer = new ProjectWriter(new MemoryStream());
+                    z_writer.Write(1);
+                    s.Save(z_writer);
+                    writer.WriteZlibChunk(z_writer);
+                }
+            }
+        }
+
+        private void Save_Backgrounds(ProjectWriter writer)
+        {
+            writer.Write(800);
+            writer.Write(Backgrounds.Count);
+            for (int i = 0; i < Backgrounds.Count; i++)
+            {
+                var b = Backgrounds[i];
+                if (b == null) Save_NullItem(writer);
+                else
+                {
+                    var z_writer = new ProjectWriter(new MemoryStream());
+                    z_writer.Write(1);
+                    b.Save(z_writer);
+                    writer.WriteZlibChunk(z_writer);
+                }
+            }
+        }
+
+        private void Save_Paths(ProjectWriter writer)
+        {
+            writer.Write(800);
+            writer.Write(Paths.Count);
+            for (int i = 0; i < Paths.Count; i++)
+            {
+                var p = Paths[i];
+                if (p == null) Save_NullItem(writer);
+                else
+                {
+                    var z_writer = new ProjectWriter(new MemoryStream());
+                    z_writer.Write(1);
+                    p.Save(z_writer, this);
+                    writer.WriteZlibChunk(z_writer);
+                }
+            }
+        }
+
+        private void Save_Scripts(ProjectWriter writer)
+        {
+            writer.Write(800);
+            writer.Write(Scripts.Count);
+            for (int i = 0; i < Scripts.Count; i++)
+            {
+                var s = Scripts[i];
+                if (s == null) Save_NullItem(writer);
+                else
+                {
+                    var z_writer = new ProjectWriter(new MemoryStream());
+                    z_writer.Write(1);
+                    s.Save(z_writer);
+                    writer.WriteZlibChunk(z_writer);
+                }
+            }
+        }
+
+        private void Save_Timelines(ProjectWriter writer)
+        {
+            writer.Write(800);
+            writer.Write(Timelines.Count);
+            for (int i = 0; i < Timelines.Count; i++)
+            {
+                var t = Timelines[i];
+                if (t == null) Save_NullItem(writer);
+                else
+                {
+                    var z_writer = new ProjectWriter(new MemoryStream());
+                    z_writer.Write(1);
+                    t.Save(z_writer, this);
+                    writer.WriteZlibChunk(z_writer);
+                }
+            }
+        }
+
+        private void Save_Fonts(ProjectWriter writer)
+        {
+            writer.Write(800);
+            writer.Write(Fonts.Count);
+            for (int i = 0; i < Fonts.Count; i++)
+            {
+                var f = Fonts[i];
+                if (f == null) Save_NullItem(writer);
+                else
+                {
+                    var z_writer = new ProjectWriter(new MemoryStream());
+                    z_writer.Write(1);
+                    f.Save(z_writer);
+                    writer.WriteZlibChunk(z_writer);
+                }
+            }
+        }
+
+        private void Save_Objects(ProjectWriter writer)
+        {
+            writer.Write(800);
+            writer.Write(Objects.Count);
+            for (int i = 0; i < Objects.Count; i++)
+            {
+                var o = Objects[i];
+                if (o == null) Save_NullItem(writer);
+                else
+                {
+                    var z_writer = new ProjectWriter(new MemoryStream());
+                    z_writer.Write(1);
+                    o.Save(z_writer, this);
+                    writer.WriteZlibChunk(z_writer);
+                }
+            }
+        }
+
+        private void Save_Rooms(ProjectWriter writer)
+        {
+            writer.Write(800);
+            writer.Write(Rooms.Count);
+            for (int i = 0; i < Rooms.Count; i++)
+            {
+                var r = Rooms[i];
+                if (r == null) Save_NullItem(writer);
+                else
+                {
+                    var z_writer = new ProjectWriter(new MemoryStream());
+                    z_writer.Write(1);
+                    r.Save(z_writer, this);
+                    writer.WriteZlibChunk(z_writer);
+                }
+            }
+        }
+
+        private void Save_IncludedFiles(ProjectWriter writer)
+        {
+            writer.Write(800);
+            writer.Write(IncludedFiles.Count);
+            for (int i = 0; i < IncludedFiles.Count; i++)
+            {
+                var f = IncludedFiles[i];
+                if (f == null) Save_NullItem(writer);
+                else
+                {
+                    var z_writer = new ProjectWriter(new MemoryStream());
+                    z_writer.Write(1);
+                    f.Save(z_writer);
+                    writer.WriteZlibChunk(z_writer);
+                }
+            }
+        }
+
+        private void Save_LibCreationCode(ProjectWriter writer)
+        {
+            writer.Write(500);
+            writer.Write(LibraryCreationCode.Count);
+            for (int i = 0; i < LibraryCreationCode.Count; i++)
+            {
+                var l = LibraryCreationCode[i];
+                writer.Write(l);
+            }
+        }
+
+        private void Save_RoomOrder(ProjectWriter writer)
+        {
+            writer.Write(700);
+            writer.Write(RoomExecutionOrder.Count);
+            for (int i = 0; i < RoomExecutionOrder.Count; i++)
+            {
+                var r = RoomExecutionOrder[i];
+                writer.Write(RoomExecutionOrder.IndexOf(r));
+            }
+        }
+
+        private void Save_ExtensionPackages(ProjectWriter writer)
+        {
+            writer.Write(700);
+            writer.Write(ExtensionPackageNames.Count);
+            for (int i = 0; i < ExtensionPackageNames.Count; i++)
+            {
+                var s = ExtensionPackageNames[i];
+                writer.Write(s);
+            }
+        }
+
+        private void Save_GameInformation(ProjectWriter writer)
+        {
+            writer.Write(GameInformation.Version);
+            var z_writer = new ProjectWriter(new MemoryStream());
+            GameInformation.Save(z_writer);
+            writer.WriteZlibChunk(z_writer);
+        }
+
+        private void Save_LastIDs(ProjectWriter writer)
+        {
+            writer.Write(LastInstanceID);
+            writer.Write(LastTileID);
         }
 
         private void Load_Main(ProjectReader reader)
@@ -55,13 +386,13 @@ namespace RussellLib
             }
 
             Version = reader.ReadInt32();
-            if (Version != 800)
+
+            if (Version != 800 && Version != 810)
             {
-                throw new InvalidDataException("This library only supports .gmk GM8.0 files.");
+                throw new InvalidDataException("This library only supports GM8.x files.");
             }
 
-            GameID = reader.ReadInt32();
-            DirectPlayGuid = reader.ReadGuid();
+            Load_Header(reader);
             Load_Options(reader);
             Load_Triggers(reader);
             Load_Constants(reader);
@@ -84,6 +415,12 @@ namespace RussellLib
 
             // *try* to load the resource tree...
             Load_ResourceTree(reader);
+        }
+
+        private void Load_Header(ProjectReader reader)
+        {
+            GameID = reader.ReadInt32();
+            DirectPlayGuid = reader.ReadGuid();
         }
 
         private void PostLoad()
@@ -194,6 +531,7 @@ namespace RussellLib
 
             var dec_reader = reader.MakeReaderZlib();
             GameInformation = new GMGameInformation(dec_reader);
+            GameInformation.Version = Version;
         }
 
         private void Load_Options(ProjectReader reader)
