@@ -150,10 +150,10 @@ namespace RussellLib.Assets
 
             // use the zlib compressed reader from now on.
             var dec_reader = reader.MakeReaderZlib();
-            int version = dec_reader.ReadInt32();
-            if (version != 800)
+            Version = dec_reader.ReadInt32();
+            if (Version != 800)
             {
-                throw new InvalidDataException("Unknown GMSPR version, got " + version);
+                throw new InvalidDataException("Unknown GMSPR version, got " + Version);
             }
 
             int _x = reader.ReadInt32();
@@ -167,7 +167,7 @@ namespace RussellLib.Assets
                 int framever = reader.ReadInt32();
                 if (framever != 800)
                 {
-                    throw new InvalidDataException("Unknown GMSPR frame version, got " + version);
+                    throw new InvalidDataException("Unknown GMSPR frame version, got " + framever);
                 }
                 Width = reader.ReadInt32();
                 Height = reader.ReadInt32();
