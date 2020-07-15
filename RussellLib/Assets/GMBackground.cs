@@ -46,6 +46,37 @@ namespace RussellLib.Assets
             }
         }
 
+        public void SaveGMBCK(ProjectWriter writer)
+        {
+            const int Magic = 1234321;
+            writer.Write(Magic);
+
+            var zlib_w = new ProjectWriter(new MemoryStream());
+            zlib_w.Write(Version);
+
+            zlib_w.Write(UseAsTileset);
+            zlib_w.Write(TileWidth);
+            zlib_w.Write(TileHeight);
+            zlib_w.Write(OffsetH);
+            zlib_w.Write(OffsetV);
+            zlib_w.Write(SepH);
+            zlib_w.Write(SepV);
+            zlib_w.Write(FrameVersion);
+            if (Background != null)
+            {
+                zlib_w.Write(Background.Size);
+                zlib_w.Write(Background, true);
+            }
+            else
+            {
+                // w = 0, h = 0, no image.
+                zlib_w.Write(0);
+                zlib_w.Write(0);
+            }
+
+            writer.WriteZlibChunk(zlib_w);
+        }
+
         public GMBackground(ProjectReader reader)
         {
             Name = reader.ReadString();
@@ -80,8 +111,8 @@ namespace RussellLib.Assets
 
             var dec_reader = reader.MakeReaderZlib();
 
-            int version = dec_reader.ReadInt32();
-            if (version != 710)
+            Version = dec_reader.ReadInt32();
+            if (Version != 710)
             {
                 throw new InvalidDataException("Unknown GMBCK version, got " + magic);
             }
@@ -94,8 +125,8 @@ namespace RussellLib.Assets
             SepH = reader.ReadInt32();
             SepV = reader.ReadInt32();
 
-            int frameversion = reader.ReadInt32();
-            if (frameversion != 800)
+            FrameVersion = reader.ReadInt32();
+            if (FrameVersion != 800)
             {
                 throw new InvalidDataException("Unknown GMBCK image version, got " + magic);
             }

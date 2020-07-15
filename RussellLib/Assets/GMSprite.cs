@@ -108,6 +108,36 @@ namespace RussellLib.Assets
             reader.Dispose();
         }
 
+        public void SaveGMSPR(ProjectWriter writer)
+        {
+            const int Magic = 1234321;
+            writer.Write(Magic);
+
+            var zlib_w = new ProjectWriter(new MemoryStream());
+            zlib_w.Write(Version);
+            zlib_w.Write(Origin);
+
+            zlib_w.Write(Subimages.Count);
+            for (int i = 0; i < Subimages.Count; i++)
+            {
+                var frame = Subimages[i];
+                zlib_w.Write(800);
+                zlib_w.Write(frame.Size);
+                if (frame.Width * frame.Height != 0)
+                {
+                    zlib_w.Write(frame, true);
+                }
+            }
+
+            zlib_w.Write((int)MaskMode);
+            zlib_w.Write(AlphaTolerance);
+            zlib_w.Write(SeparateMasks);
+            zlib_w.Write((int)BBoxMode);
+            zlib_w.Write(BBox);
+
+            writer.WriteZlibChunk(zlib_w); // zlib_w gets disposed automatically wew.
+        }
+
         public GMSprite(ProjectReader reader, bool _gmspr)
         {
             // Basically the same code except that we read the magic and uncompress data.
