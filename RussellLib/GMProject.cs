@@ -3,6 +3,8 @@ using RussellLib.Assets;
 using RussellLib.Base;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 
 namespace RussellLib
@@ -376,6 +378,11 @@ namespace RussellLib
             writer.Write(LastTileID);
         }
 
+        private void Report(string text)
+        {
+            Debug.WriteLine(text);
+        }
+
         private void Load_Main(ProjectReader reader)
         {
             int Magic = reader.ReadInt32();
@@ -392,29 +399,52 @@ namespace RussellLib
                 throw new InvalidDataException("This library only supports GM8.x files.");
             }
 
+            Report("Header");
             Load_Header(reader);
+            Report("Options");
             Load_Options(reader);
+            Report("Triggers");
             Load_Triggers(reader);
+            Report("Constants");
             Load_Constants(reader);
+            Report("Sounds");
             Load_Sounds(reader);
+            Report("Sprites");
             Load_Sprites(reader);
+            Report("Backgrounds");
             Load_Backgrounds(reader);
+            Report("Paths");
             Load_Paths(reader);
+            Report("Scripts");
             Load_Scripts(reader);
+            Report("Fonts");
             Load_Fonts(reader);
+            Report("Timelines");
             Load_Timelines(reader);
+            Report("Objects");
             Load_Objects(reader);
+            Report("Rooms");
             Load_Rooms(reader);
+            Report("Last IDs");
             Load_LastIDs(reader);
+            Report("Included Files");
             Load_IncludedFiles(reader);
+            Report("Extensions");
             Load_ExtensionPackages(reader);
+            Report("Game Information");
             Load_GameInformation(reader);
+            Report("Library creation code");
             Load_LibCreationCode(reader);
+            Report("Room Execution order");
             Load_RoomOrder(reader);
+            Report("Post fixups");
             PostLoad();
 
             // *try* to load the resource tree...
+            Report("Resource tree");
             Load_ResourceTree(reader);
+
+            Report("Done!");
         }
 
         private void Load_Header(ProjectReader reader)

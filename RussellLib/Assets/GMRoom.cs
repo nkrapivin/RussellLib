@@ -24,6 +24,7 @@ namespace RussellLib.Assets
         public string CreationCode;
         public List<RoomBackground> Backgrounds;
         public bool EnableViews;
+        public bool ClearBGWithWindowColor; // GM >=8.1 only.
         public List<RoomView> Views;
         public List<RoomInstance> Instances;
         public List<RoomTile> Tiles;
@@ -65,7 +66,9 @@ namespace RussellLib.Assets
             writer.Write(Speed);
             writer.Write(Persistent);
             writer.Write(BackgroundColor);
-            writer.Write(DrawBackgroundColor);
+            int val = DrawBackgroundColor ? 1 : 0;
+            if (ClearBGWithWindowColor) val |= 0b10;
+            writer.Write(val);
             writer.Write(CreationCode);
             writer.Write(Backgrounds.Count);
             for (int i = 0; i < Backgrounds.Count; i++)
@@ -120,7 +123,9 @@ namespace RussellLib.Assets
             Speed = reader.ReadUInt32();
             Persistent = reader.ReadBoolean();
             BackgroundColor = reader.ReadColor();
-            DrawBackgroundColor = reader.ReadBoolean();
+            int val = reader.ReadInt32();
+            DrawBackgroundColor = (val & 1) != 0;
+            ClearBGWithWindowColor = (val & 0b10) == 0;
             CreationCode = reader.ReadString();
 
             // Read room backgrounds.
