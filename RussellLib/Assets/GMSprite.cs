@@ -156,37 +156,37 @@ namespace RussellLib.Assets
                 throw new InvalidDataException("Unknown GMSPR version, got " + Version);
             }
 
-            int _x = reader.ReadInt32();
-            int _y = reader.ReadInt32();
+            int _x = dec_reader.ReadInt32();
+            int _y = dec_reader.ReadInt32();
             Origin = new Point(_x, _y);
 
-            int framenum = reader.ReadInt32();
+            int framenum = dec_reader.ReadInt32();
             Subimages = new List<Image>(framenum);
             for (int i = 0; i < framenum; i++)
             {
-                int framever = reader.ReadInt32();
+                int framever = dec_reader.ReadInt32();
                 if (framever != 800)
                 {
                     throw new InvalidDataException("Unknown GMSPR frame version, got " + framever);
                 }
-                Width = reader.ReadInt32();
-                Height = reader.ReadInt32();
+                Width = dec_reader.ReadInt32();
+                Height = dec_reader.ReadInt32();
                 if (Width * Height != 0)
                 {
-                    Subimages.Add(reader.ReadBGRAImage(Width, Height));
+                    Subimages.Add(dec_reader.ReadBGRAImage(Width, Height));
                 }
                 else Subimages.Add(null); // ????
             }
 
-            MaskMode = (SpriteMaskMode)reader.ReadInt32();
-            AlphaTolerance = reader.ReadInt32();
-            SeparateMasks = reader.ReadBoolean();
-            BBoxMode = (SpriteBBoxMode)reader.ReadInt32();
+            MaskMode = (SpriteMaskMode)dec_reader.ReadInt32();
+            AlphaTolerance = dec_reader.ReadInt32();
+            SeparateMasks = dec_reader.ReadBoolean();
+            BBoxMode = (SpriteBBoxMode)dec_reader.ReadInt32();
 
-            int _l = reader.ReadInt32();
-            int _r = reader.ReadInt32();
-            int _b = reader.ReadInt32();
-            int _t = reader.ReadInt32();
+            int _l = dec_reader.ReadInt32();
+            int _r = dec_reader.ReadInt32();
+            int _b = dec_reader.ReadInt32();
+            int _t = dec_reader.ReadInt32();
             BBox = new Rectangle(_l, _r, _b, _t);
 
             dec_reader.Dispose();

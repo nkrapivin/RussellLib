@@ -117,25 +117,25 @@ namespace RussellLib.Assets
                 throw new InvalidDataException("Unknown GMBCK version, got " + magic);
             }
 
-            UseAsTileset = reader.ReadBoolean();
-            TileWidth = reader.ReadInt32();
-            TileHeight = reader.ReadInt32();
-            OffsetH = reader.ReadInt32();
-            OffsetV = reader.ReadInt32();
-            SepH = reader.ReadInt32();
-            SepV = reader.ReadInt32();
+            UseAsTileset = dec_reader.ReadBoolean();
+            TileWidth = dec_reader.ReadInt32();
+            TileHeight = dec_reader.ReadInt32();
+            OffsetH = dec_reader.ReadInt32();
+            OffsetV = dec_reader.ReadInt32();
+            SepH = dec_reader.ReadInt32();
+            SepV = dec_reader.ReadInt32();
 
-            FrameVersion = reader.ReadInt32();
+            FrameVersion = dec_reader.ReadInt32();
             if (FrameVersion != 800)
             {
                 throw new InvalidDataException("Unknown GMBCK image version, got " + magic);
             }
 
             int Width, Height;
-            Width = reader.ReadInt32();
-            Height = reader.ReadInt32();
+            Width = dec_reader.ReadInt32();
+            Height = dec_reader.ReadInt32();
             Background = null;
-            if (Width * Height != 0) Background = reader.ReadBGRAImage(Width, Height);
+            if (Width * Height != 0) Background = dec_reader.ReadBGRAImage(Width, Height);
 
             dec_reader.Dispose();
         }
