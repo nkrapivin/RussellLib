@@ -67,7 +67,7 @@ namespace RussellLib.Assets
             writer.Write(Persistent);
             writer.Write(BackgroundColor);
             int val = DrawBackgroundColor ? 1 : 0;
-            if (ClearBGWithWindowColor) val |= 0b10;
+            if (!ClearBGWithWindowColor) val |= 0b10;
             writer.Write(val);
             writer.Write(CreationCode);
             writer.Write(Backgrounds.Count);
